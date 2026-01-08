@@ -171,10 +171,11 @@ class DatabaseSchedulerService:
         thumbnail_path: Path,
         caption: str = "CHANGE ME",
         platforms: list[str] = ["instagram"],
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
+        brand_config: Optional['BrandConfig'] = None
     ) -> Dict[str, Any]:
         """
-        Publish a reel immediately using user's credentials.
+        Publish a reel immediately using user's credentials or brand credentials.
         
         Args:
             video_path: Path to video file
@@ -182,28 +183,50 @@ class DatabaseSchedulerService:
             caption: Caption for the post
             platforms: List of platforms
             user_id: User ID to use credentials from
+            brand_config: Brand configuration with specific credentials
             
         Returns:
             Publishing results
         """
-        # Get user credentials if user_id provided
-        if user_id:
+        from app.services.social_publisher import SocialPublisher
+        
+        # Priority: brand_config > user_id > default
+        publisher = None
+        
+        if brand_config:
+            # Use brand-specific credentials
+            publisher = SocialPublisher(brand_config=brand_config)
+        elif user_id:
+            # Get user credentials if user_id provided
             with get_db_session() as db:
                 user = db.query(UserProfile).filter(
                     UserProfile.user_id == user_id
                 ).first()
                 
                 if user:
-                    # Use user's specific credentials
-                    publisher = SocialPublisher(
-                        instagram_account_id=user.instagram_business_account_id,
+                    # Create temporary brand config from user credentials
+                    from app.core.config import BrandConfig
+                    user_config = BrandConfig(
+                        name="user_custom",
+                        display_name="User Custom",
+                        primary_color=(0, 0, 0),
+                        secondary_color=(0, 0, 0),
+                        text_color=(0, 0, 0),
+                        highlight_color=(0, 0, 0, 0),
+                        logo_filename="",
+                        thumbnail_bg_color=(0, 0, 0),
+                        thumbnail_text_color=(0, 0, 0),
+                        content_title_color=(0, 0, 0),
+                        content_highlight_color=(0, 0, 0, 0),
+                        instagram_business_account_id=user.instagram_business_account_id,
                         facebook_page_id=user.facebook_page_id,
-                        meta_access_token=user.meta_access_token or user.instagram_access_token
+                        meta_access_token=user.meta_access_token
                     )
-                else:
-                    publisher = self.publisher
-        else:
-            publisher = self.publisher
+                    publisher = SocialPublisher(brand_config=user_config)
+        
+        if not publisher:
+            # Use default credentials
+            publisher = SocialPublisher()
         
         # Get public URL
         public_url_base = os.getenv("PUBLIC_URL_BASE", "http://localhost:8000")

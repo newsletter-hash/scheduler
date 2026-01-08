@@ -816,7 +816,8 @@ Chicken — Let it rest after cooking" required></textarea>
             const requestData = {
                 reel_id: currentReels[currentPublishBrand],
                 caption: caption,
-                platforms: platforms
+                platforms: platforms,
+                brand: currentPublishBrand  // Add brand to request
             };
             
             if (scheduleDate && scheduleTime) {

@@ -5,23 +5,39 @@ import os
 import requests
 from typing import Optional, Dict, Any
 from pathlib import Path
+from app.core.config import BrandConfig
 
 
 class SocialPublisher:
     """Service for publishing Reels to Instagram and Facebook."""
     
-    def __init__(self):
-        """Initialize the social publisher with Meta credentials."""
-        self.ig_access_token = os.getenv("INSTAGRAM_ACCESS_TOKEN")
-        self.ig_business_account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID")
-        self.fb_access_token = os.getenv("FACEBOOK_ACCESS_TOKEN")
-        self.fb_page_id = os.getenv("FACEBOOK_PAGE_ID")
+    def __init__(self, brand_config: Optional[BrandConfig] = None):
+        """
+        Initialize the social publisher with Meta credentials.
+        
+        Args:
+            brand_config: Optional brand configuration with specific credentials.
+                         If not provided, uses default environment variables.
+        """
+        # Use brand-specific credentials if provided, otherwise fall back to defaults
+        if brand_config:
+            self.ig_business_account_id = brand_config.instagram_business_account_id
+            self.fb_page_id = brand_config.facebook_page_id
+            self.ig_access_token = brand_config.meta_access_token
+            self.fb_access_token = brand_config.meta_access_token
+        else:
+            # Fallback to default environment variables
+            self.ig_access_token = os.getenv("INSTAGRAM_ACCESS_TOKEN") or os.getenv("META_ACCESS_TOKEN")
+            self.ig_business_account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID")
+            self.fb_access_token = os.getenv("FACEBOOK_ACCESS_TOKEN") or os.getenv("META_ACCESS_TOKEN")
+            self.fb_page_id = os.getenv("FACEBOOK_PAGE_ID")
+        
         self.api_version = "v19.0"
         
         if not self.ig_access_token:
-            print("⚠️  Warning: INSTAGRAM_ACCESS_TOKEN not found in .env")
+            print("⚠️  Warning: Meta access token not found")
         if not self.ig_business_account_id:
-            print("⚠️  Warning: INSTAGRAM_BUSINESS_ACCOUNT_ID not found in .env")
+            print("⚠️  Warning: INSTAGRAM_BUSINESS_ACCOUNT_ID not found")
     
     def publish_instagram_reel(
         self,

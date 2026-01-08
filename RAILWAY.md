@@ -58,6 +58,13 @@ FACEBOOK_PAGE_ID=your_facebook_page_id
 2. After ~2-3 minutes, you'll get a public URL
 3. Click "Settings" → "Generate Domain" to get: `https://your-app.railway.app`
 
+**Important**: Make sure the **Target Port** matches your app:
+- In Railway dashboard → Your service → Settings → Networking
+- The target port should match what your app listens on
+- Our app uses the `PORT` environment variable (Railway auto-provides this)
+- If you see "Port 8080" but your app listens on a different port, update it
+- Check deployment logs to see: "Uvicorn running on http://0.0.0.0:XXXX"
+
 ### Step 5: Initialize Users
 
 Access your deployment at `https://your-app.railway.app` and create users via API:

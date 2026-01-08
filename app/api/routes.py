@@ -14,9 +14,9 @@ from app.services.image_generator import ImageGenerator
 from app.services.video_generator import VideoGenerator
 from app.services.caption_builder import CaptionBuilder
 from app.services.db_scheduler import DatabaseSchedulerService
+from app.services.social_publisher import SocialPublisher
 from app.database.db import ReelDatabase
-from app.core.config import BrandType
-from app.core.cta import CTAType
+from app.core.config import BrandType, BRAND_CONFIGS, BrandConfig
 
 
 # Simple request model for web interface
@@ -39,6 +39,28 @@ router = APIRouter(prefix="/reels", tags=["reels"])
 # Initialize services (will be reused across requests)
 scheduler_service = DatabaseSchedulerService()
 db = ReelDatabase()
+
+
+def get_brand_config_from_name(brand_name: str) -> Optional[BrandConfig]:
+    """
+    Get brand configuration from brand name string.
+    
+    Args:
+        brand_name: Brand name from UI ("gymcollege" or "healthycollege")
+        
+    Returns:
+        BrandConfig or None
+    """
+    brand_mapping = {
+        "gymcollege": BrandType.THE_GYM_COLLEGE,
+        "healthycollege": BrandType.WELLNESS_LIFE,
+        "the_gym_college": BrandType.THE_GYM_COLLEGE,
+        "wellness_life": BrandType.WELLNESS_LIFE,
+    }
+    brand_type = brand_mapping.get(brand_name.lower())
+    if brand_type:
+        return BRAND_CONFIGS.get(brand_type)
+    return None
 
 
 @router.post(
@@ -593,6 +615,7 @@ class PublishRequest(BaseModel):
     schedule_time: str = None  # HH:MM
     user_id: str = None  # User identifier (email or username)
     user_name: str = None  # Display name
+    brand: str = None  # Brand name ("gymcollege" or "healthycollege")
 
 
 @router.post("/publish")
@@ -602,8 +625,14 @@ async def publish_reel(request: PublishRequest):
     
     If schedule_date and schedule_time are provided, schedules for later.
     Otherwise, publishes immediately.
+    Uses brand-specific Instagram credentials if brand is provided.
     """
     try:
+        # Get brand-specific configuration if brand provided
+        brand_config = None
+        if request.brand:
+            brand_config = get_brand_config_from_name(request.brand)
+        
         # Get base directory
         base_dir = Path(__file__).resolve().parent.parent.parent
         video_path = base_dir / "output" / "videos" / f"{request.reel_id}.mp4"
@@ -657,7 +686,8 @@ async def publish_reel(request: PublishRequest):
                 thumbnail_path=thumbnail_path,
                 caption=request.caption,
                 platforms=request.platforms,
-                user_id=request.user_id
+                user_id=request.user_id,
+                brand_config=brand_config
             )
             
             return {

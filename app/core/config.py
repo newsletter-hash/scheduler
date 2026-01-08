@@ -2,8 +2,9 @@
 Brand configurations for the reels automation system.
 """
 from enum import Enum
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 from dataclasses import dataclass
+import os
 
 
 class BrandType(str, Enum):
@@ -27,6 +28,9 @@ class BrandConfig:
     thumbnail_text_color: Tuple[int, int, int]  # RGB for thumbnail text
     content_title_color: Tuple[int, int, int]  # RGB for content title
     content_highlight_color: Tuple[int, int, int, int]  # RGBA for content title background
+    instagram_business_account_id: Optional[str] = None  # Brand-specific Instagram ID
+    facebook_page_id: Optional[str] = None  # Brand-specific Facebook Page ID
+    meta_access_token: Optional[str] = None  # Brand-specific access token
 
 
 # Brand configuration mapping
@@ -43,6 +47,9 @@ BRAND_CONFIGS: Dict[BrandType, BrandConfig] = {
         thumbnail_text_color=(0, 67, 92),  # #00435c
         content_title_color=(0, 0, 0),  # Black #000000
         content_highlight_color=(200, 234, 246, 255),  # #c8eaf6
+        instagram_business_account_id=os.getenv("GYMCOLLEGE_INSTAGRAM_ID"),
+        facebook_page_id=os.getenv("GYMCOLLEGE_FACEBOOK_PAGE_ID"),
+        meta_access_token=os.getenv("GYMCOLLEGE_META_TOKEN") or os.getenv("META_ACCESS_TOKEN"),
     ),
     BrandType.FITNESS_PRO: BrandConfig(
         name="FITNESS_PRO",
@@ -56,6 +63,9 @@ BRAND_CONFIGS: Dict[BrandType, BrandConfig] = {
         thumbnail_text_color=(255, 255, 255),
         content_title_color=(255, 255, 255),
         content_highlight_color=(0, 230, 118, 100),
+        instagram_business_account_id=os.getenv("FITNESSPRO_INSTAGRAM_ID"),
+        facebook_page_id=os.getenv("FITNESSPRO_FACEBOOK_PAGE_ID"),
+        meta_access_token=os.getenv("FITNESSPRO_META_TOKEN") or os.getenv("META_ACCESS_TOKEN"),
     ),
     BrandType.WELLNESS_LIFE: BrandConfig(
         name="WELLNESS_LIFE",
@@ -69,6 +79,9 @@ BRAND_CONFIGS: Dict[BrandType, BrandConfig] = {
         thumbnail_text_color=(255, 255, 255),
         content_title_color=(255, 255, 255),
         content_highlight_color=(255, 107, 107, 100),
+        instagram_business_account_id=os.getenv("HEALTHYCOLLEGE_INSTAGRAM_ID"),
+        facebook_page_id=None,  # Healthy College: Instagram only, no Facebook
+        meta_access_token=os.getenv("HEALTHYCOLLEGE_META_TOKEN") or os.getenv("META_ACCESS_TOKEN"),
     ),
 }
 
