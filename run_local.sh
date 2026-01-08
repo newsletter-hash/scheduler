@@ -9,6 +9,17 @@ echo "🌐 Server: http://localhost:8000"
 echo "📄 API Docs: http://localhost:8000/docs"
 echo "📅 Scheduled: http://localhost:8000/scheduled"
 echo ""
+
+# Check if .env exists, if not copy from example
+if [ ! -f .env ]; then
+    echo "⚠️  No .env file found. Creating from .env.example..."
+    if [ -f .env.example ]; then
+        cp .env.example .env
+        echo "✅ Created .env - Please add your OPENAI_API_KEY"
+        echo ""
+    fi
+fi
+
 echo "Press Ctrl+C to stop"
 echo ""
 
