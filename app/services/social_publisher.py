@@ -2,6 +2,7 @@
 Social media publisher for Instagram and Facebook Reels.
 """
 import os
+import time
 import requests
 from typing import Optional, Dict, Any
 from pathlib import Path
@@ -107,9 +108,8 @@ class SocialPublisher:
             print(f"✅ Container created: {creation_id}")
             
             # Step 1.5: Wait for video processing with status checks
-            import time
             status_url = f"https://graph.facebook.com/{self.api_version}/{creation_id}"
-            max_wait_seconds = 120  # Wait up to 2 minutes for processing
+            max_wait_seconds = 180  # Wait up to 3 minutes for processing
             check_interval = 5  # Check every 5 seconds
             waited = 0
             
@@ -117,29 +117,45 @@ class SocialPublisher:
             while waited < max_wait_seconds:
                 status_response = requests.get(
                     status_url,
-                    params={"fields": "status_code", "access_token": self.ig_access_token},
+                    params={"fields": "status_code,status", "access_token": self.ig_access_token},
                     timeout=10
                 )
                 status_data = status_response.json()
-                status_code = status_data.get("status_code")
                 
-                print(f"   📊 Status: {status_code} (waited {waited}s)")
+                # Check for error in response
+                if "error" in status_data:
+                    error_msg = status_data["error"].get("message", "Unknown error")
+                    print(f"   ❌ Status check error: {error_msg}")
+                    return {
+                        "success": False,
+                        "error": f"Status check failed: {error_msg}",
+                        "platform": "instagram",
+                        "step": "status_check"
+                    }
+                
+                status_code = status_data.get("status_code")
+                status_info = status_data.get("status", "")
+                
+                print(f"   📊 Status: {status_code} (waited {waited}s) - {status_info}")
                 
                 if status_code == "FINISHED":
                     print(f"✅ Video processing complete!")
                     break
                 elif status_code == "ERROR":
+                    print(f"   ❌ Video processing failed! Status info: {status_info}")
                     return {
                         "success": False,
-                        "error": "Instagram video processing failed",
+                        "error": f"Instagram video processing failed: {status_info}",
                         "platform": "instagram",
-                        "step": "processing"
+                        "step": "processing",
+                        "status_data": status_data
                     }
                 elif status_code in ["IN_PROGRESS", "EXPIRED", None]:
                     time.sleep(check_interval)
                     waited += check_interval
                 else:
-                    # Unknown status, try to continue
+                    # Unknown status, log and continue
+                    print(f"   ⚠️ Unknown status: {status_code}")
                     time.sleep(check_interval)
                     waited += check_interval
             
@@ -204,7 +220,8 @@ class SocialPublisher:
         thumbnail_url: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Publish a video to Facebook Page (will surface as Reel if vertical).
+        Publish a Reel to Facebook Page using the Reels Publishing API.
+        This uses the proper 3-step process: Initialize -> Upload -> Publish.
         
         Args:
             video_url: Public URL to the video file
@@ -222,42 +239,169 @@ class SocialPublisher:
             }
         
         try:
-            # Publish video to Facebook Page
-            publish_url = f"https://graph.facebook.com/{self.api_version}/{self.fb_page_id}/videos"
+            # Step 1: Initialize upload session
+            init_url = f"https://graph.facebook.com/{self.api_version}/{self.fb_page_id}/video_reels"
             
-            print(f"📤 Video URL for Facebook: {video_url}")
+            print(f"📤 Initializing Facebook Reel upload...")
+            print(f"   Page ID: {self.fb_page_id}")
+            print(f"   Video URL: {video_url}")
             
-            payload = {
-                "file_url": video_url,
-                "description": caption,
-                "access_token": self.fb_access_token
-            }
+            init_response = requests.post(
+                init_url,
+                json={
+                    "upload_phase": "start",
+                    "access_token": self.fb_access_token
+                },
+                timeout=30
+            )
+            init_data = init_response.json()
             
-            # Note: Facebook's thumb parameter requires file upload, not URL
-            # Skipping thumbnail for now as it causes "Invalid image format" error
-            # if thumbnail_url:
-            #     payload["thumb"] = thumbnail_url
-            
-            print(f"🚀 Publishing Facebook video...")
-            response = requests.post(publish_url, data=payload, timeout=60)
-            data = response.json()
-            
-            if "error" in data:
+            if "error" in init_data:
+                error_msg = init_data["error"].get("message", "Unknown error")
+                error_code = init_data["error"].get("code", "")
+                print(f"   ❌ Init error: {error_msg} (code: {error_code})")
                 return {
                     "success": False,
-                    "error": data["error"].get("message", "Unknown error"),
-                    "platform": "facebook"
+                    "error": error_msg,
+                    "platform": "facebook",
+                    "step": "init",
+                    "error_code": error_code
                 }
             
-            fb_post_id = data.get("id")
+            video_id = init_data.get("video_id")
+            upload_url = init_data.get("upload_url")
             
-            print(f"🎉 Facebook video published! Post ID: {fb_post_id}")
-            print(f"ℹ️  If video is 9:16 vertical, Facebook will surface it as a Reel")
+            if not video_id or not upload_url:
+                print(f"   ❌ Missing video_id or upload_url in response: {init_data}")
+                return {
+                    "success": False,
+                    "error": "Failed to initialize upload - missing video_id or upload_url",
+                    "platform": "facebook",
+                    "step": "init"
+                }
+            
+            print(f"✅ Upload session initialized: {video_id}")
+            
+            # Step 2: Upload the video using hosted file URL
+            print(f"📤 Uploading video to Facebook...")
+            
+            upload_response = requests.post(
+                upload_url,
+                headers={
+                    "Authorization": f"OAuth {self.fb_access_token}",
+                    "file_url": video_url
+                },
+                timeout=120
+            )
+            
+            # Check if upload was successful
+            try:
+                upload_data = upload_response.json()
+                if "error" in upload_data:
+                    error_msg = upload_data["error"].get("message", "Unknown error")
+                    print(f"   ❌ Upload error: {error_msg}")
+                    return {
+                        "success": False,
+                        "error": f"Upload failed: {error_msg}",
+                        "platform": "facebook",
+                        "step": "upload"
+                    }
+            except:
+                # Response might not be JSON
+                pass
+            
+            if upload_response.status_code != 200:
+                print(f"   ❌ Upload failed with status {upload_response.status_code}: {upload_response.text}")
+                return {
+                    "success": False,
+                    "error": f"Upload failed with status {upload_response.status_code}",
+                    "platform": "facebook",
+                    "step": "upload"
+                }
+            
+            print(f"✅ Video uploaded successfully")
+            
+            # Step 2.5: Wait for video processing
+            print(f"⏳ Waiting for Facebook to process video...")
+            max_wait = 120
+            waited = 0
+            check_interval = 5
+            
+            while waited < max_wait:
+                status_response = requests.get(
+                    f"https://graph.facebook.com/{self.api_version}/{video_id}",
+                    params={
+                        "fields": "status",
+                        "access_token": self.fb_access_token
+                    },
+                    timeout=10
+                )
+                status_data = status_response.json()
+                
+                if "error" in status_data:
+                    print(f"   ⚠️ Status check error, continuing...")
+                    time.sleep(check_interval)
+                    waited += check_interval
+                    continue
+                
+                status = status_data.get("status", {})
+                video_status = status.get("video_status", "")
+                processing_status = status.get("processing_phase", {}).get("status", "")
+                
+                print(f"   📊 Status: {video_status}, Processing: {processing_status} (waited {waited}s)")
+                
+                if processing_status == "complete" or video_status == "ready":
+                    print(f"✅ Video processing complete!")
+                    break
+                elif processing_status == "error":
+                    error_info = status.get("processing_phase", {}).get("error", {})
+                    error_msg = error_info.get("message", "Processing error")
+                    print(f"   ❌ Processing error: {error_msg}")
+                    return {
+                        "success": False,
+                        "error": f"Video processing failed: {error_msg}",
+                        "platform": "facebook",
+                        "step": "processing"
+                    }
+                
+                time.sleep(check_interval)
+                waited += check_interval
+            
+            # Step 3: Publish the reel
+            print(f"🚀 Publishing Facebook Reel...")
+            
+            publish_response = requests.post(
+                init_url,
+                params={
+                    "access_token": self.fb_access_token,
+                    "video_id": video_id,
+                    "upload_phase": "finish",
+                    "video_state": "PUBLISHED",
+                    "description": caption
+                },
+                timeout=30
+            )
+            publish_data = publish_response.json()
+            
+            if "error" in publish_data:
+                error_msg = publish_data["error"].get("message", "Unknown error")
+                error_code = publish_data["error"].get("code", "")
+                print(f"   ❌ Publish error: {error_msg} (code: {error_code})")
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "platform": "facebook",
+                    "step": "publish",
+                    "video_id": video_id
+                }
+            
+            print(f"🎉 Facebook Reel published! Video ID: {video_id}")
             
             return {
                 "success": True,
                 "platform": "facebook",
-                "post_id": fb_post_id
+                "post_id": video_id,
+                "video_id": video_id
             }
             
         except requests.exceptions.Timeout:
@@ -267,6 +411,7 @@ class SocialPublisher:
                 "platform": "facebook"
             }
         except Exception as e:
+            print(f"   ❌ Exception: {str(e)}")
             return {
                 "success": False,
                 "error": str(e),
