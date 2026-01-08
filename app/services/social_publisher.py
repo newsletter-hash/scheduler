@@ -71,6 +71,8 @@ class SocialPublisher:
             # Step 1: Create media container
             container_url = f"https://graph.facebook.com/{self.api_version}/{self.ig_business_account_id}/media"
             
+            print(f"📤 Video URL for Instagram: {video_url}")
+            
             container_payload = {
                 "media_type": "REELS",
                 "video_url": video_url,
@@ -103,6 +105,52 @@ class SocialPublisher:
                 }
             
             print(f"✅ Container created: {creation_id}")
+            
+            # Step 1.5: Wait for video processing with status checks
+            import time
+            status_url = f"https://graph.facebook.com/{self.api_version}/{creation_id}"
+            max_wait_seconds = 120  # Wait up to 2 minutes for processing
+            check_interval = 5  # Check every 5 seconds
+            waited = 0
+            
+            print(f"⏳ Waiting for Instagram to process video...")
+            while waited < max_wait_seconds:
+                status_response = requests.get(
+                    status_url,
+                    params={"fields": "status_code", "access_token": self.ig_access_token},
+                    timeout=10
+                )
+                status_data = status_response.json()
+                status_code = status_data.get("status_code")
+                
+                print(f"   📊 Status: {status_code} (waited {waited}s)")
+                
+                if status_code == "FINISHED":
+                    print(f"✅ Video processing complete!")
+                    break
+                elif status_code == "ERROR":
+                    return {
+                        "success": False,
+                        "error": "Instagram video processing failed",
+                        "platform": "instagram",
+                        "step": "processing"
+                    }
+                elif status_code in ["IN_PROGRESS", "EXPIRED", None]:
+                    time.sleep(check_interval)
+                    waited += check_interval
+                else:
+                    # Unknown status, try to continue
+                    time.sleep(check_interval)
+                    waited += check_interval
+            
+            if waited >= max_wait_seconds:
+                return {
+                    "success": False,
+                    "error": f"Video processing timeout after {max_wait_seconds}s",
+                    "platform": "instagram",
+                    "step": "processing_timeout",
+                    "creation_id": creation_id
+                }
             
             # Step 2: Publish the container
             publish_url = f"https://graph.facebook.com/{self.api_version}/{self.ig_business_account_id}/media_publish"
@@ -177,15 +225,18 @@ class SocialPublisher:
             # Publish video to Facebook Page
             publish_url = f"https://graph.facebook.com/{self.api_version}/{self.fb_page_id}/videos"
             
+            print(f"📤 Video URL for Facebook: {video_url}")
+            
             payload = {
                 "file_url": video_url,
                 "description": caption,
                 "access_token": self.fb_access_token
             }
             
-            # Add thumbnail if provided
-            if thumbnail_url:
-                payload["thumb"] = thumbnail_url
+            # Note: Facebook's thumb parameter requires file upload, not URL
+            # Skipping thumbnail for now as it causes "Invalid image format" error
+            # if thumbnail_url:
+            #     payload["thumb"] = thumbnail_url
             
             print(f"🚀 Publishing Facebook video...")
             response = requests.post(publish_url, data=payload, timeout=60)

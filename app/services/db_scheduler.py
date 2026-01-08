@@ -262,11 +262,22 @@ class DatabaseSchedulerService:
         railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN")
         if railway_domain:
             public_url_base = f"https://{railway_domain}"
+            print(f"🌐 Using Railway domain: {railway_domain}")
         else:
             public_url_base = os.getenv("PUBLIC_URL_BASE", "http://localhost:8000")
+            print(f"🌐 Using PUBLIC_URL_BASE: {public_url_base}")
         
         video_url = f"{public_url_base}/output/videos/{video_path.name}"
         thumbnail_url = f"{public_url_base}/output/thumbnails/{thumbnail_path.name}"
+        
+        print(f"🎬 Video URL: {video_url}")
+        print(f"🖼️  Thumbnail URL: {thumbnail_url}")
+        
+        # Verify video file exists
+        if not video_path.exists():
+            print(f"❌ ERROR: Video file not found at {video_path}")
+        else:
+            print(f"✅ Video file exists: {video_path} ({video_path.stat().st_size} bytes)")
         
         results = {}
         

@@ -69,8 +69,14 @@ app.add_middleware(
 # Include routers
 app.include_router(reels_router)
 
-# Mount static files
-app.mount("/output", StaticFiles(directory="output"), name="output")
+# Mount static files - use absolute path for Railway volume support
+# The output directory is at /app/output when running in Docker
+output_dir = Path("/app/output") if Path("/app/output").exists() else Path("output")
+output_dir.mkdir(parents=True, exist_ok=True)
+(output_dir / "videos").mkdir(exist_ok=True)
+(output_dir / "thumbnails").mkdir(exist_ok=True)
+print(f"📁 Static files directory: {output_dir.absolute()}")
+app.mount("/output", StaticFiles(directory=str(output_dir)), name="output")
 
 
 @app.get("/", tags=["root"])
