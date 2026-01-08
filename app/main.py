@@ -106,6 +106,17 @@ async def startup_event():
     print("💾 Initializing database...")
     init_db()
     
+    # Reset any stuck "publishing" posts from previous crashes
+    print("🔄 Checking for stuck publishing posts...")
+    try:
+        from app.services.db_scheduler import DatabaseSchedulerService
+        scheduler_service = DatabaseSchedulerService()
+        reset_count = scheduler_service.reset_stuck_publishing(max_age_minutes=10)
+        if reset_count > 0:
+            print(f"⚠️ Reset {reset_count} stuck post(s) from previous run")
+    except Exception as e:
+        print(f"⚠️ Could not check stuck posts: {e}")
+    
     # Initialize auto-publishing scheduler
     print("⏰ Starting auto-publishing scheduler...")
     scheduler = BackgroundScheduler()
@@ -184,7 +195,14 @@ async def startup_event():
                         
                         # Only mark as published if at least one platform succeeded
                         if success_platforms:
-                            scheduler_service.mark_as_published(schedule_id)
+                            # Collect post IDs for storage
+                            post_ids = {}
+                            for platform in success_platforms:
+                                pid = result[platform].get('post_id') or result[platform].get('video_id')
+                                if pid:
+                                    post_ids[platform] = str(pid)
+                            
+                            scheduler_service.mark_as_published(schedule_id, post_ids=post_ids)
                             print(f"   ✅ Successfully published {reel_id} to {', '.join(success_platforms)}")
                             
                             if failed_platforms:

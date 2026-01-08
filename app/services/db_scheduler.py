@@ -107,21 +107,33 @@ class DatabaseSchedulerService:
     def get_pending_publications(self) -> list[Dict[str, Any]]:
         """
         Get all scheduled reels that are due for publishing.
+        Uses atomic locking to prevent duplicate publishing.
         
         Returns:
-            List of schedules ready to publish
+            List of schedules ready to publish (already marked as 'publishing')
         """
         with get_db_session() as db:
             now = datetime.now(timezone.utc)
             
+            # Use FOR UPDATE to lock rows and prevent race conditions
+            # This ensures only one scheduler instance can pick up each post
             pending = db.query(ScheduledReel).filter(
                 and_(
                     ScheduledReel.status == "scheduled",
                     ScheduledReel.scheduled_time <= now
                 )
-            ).all()
+            ).with_for_update(skip_locked=True).all()
             
-            return [reel.to_dict() for reel in pending]
+            # IMMEDIATELY mark all as "publishing" to prevent duplicate picks
+            result = []
+            for reel in pending:
+                reel.status = "publishing"
+                result.append(reel.to_dict())
+            
+            # Commit the status change before returning
+            db.commit()
+            
+            return result
     
     def get_all_scheduled(self, user_id: Optional[str] = None) -> list[Dict[str, Any]]:
         """
@@ -170,8 +182,13 @@ class DatabaseSchedulerService:
             db.commit()
             return True
     
-    def mark_as_published(self, schedule_id: str) -> None:
-        """Mark a schedule as successfully published."""
+    def mark_as_published(self, schedule_id: str, post_ids: Dict[str, str] = None) -> None:
+        """Mark a schedule as successfully published.
+        
+        Args:
+            schedule_id: The schedule ID
+            post_ids: Dict of platform -> post_id for storing results
+        """
         with get_db_session() as db:
             scheduled_reel = db.query(ScheduledReel).filter(
                 ScheduledReel.schedule_id == schedule_id
@@ -180,6 +197,13 @@ class DatabaseSchedulerService:
             if scheduled_reel:
                 scheduled_reel.status = "published"
                 scheduled_reel.published_at = datetime.now(timezone.utc)
+                
+                # Store post IDs in metadata if provided
+                if post_ids:
+                    metadata = scheduled_reel.extra_data or {}
+                    metadata['post_ids'] = post_ids
+                    scheduled_reel.extra_data = metadata
+                
                 db.commit()
     
     def mark_as_failed(self, schedule_id: str, error: str) -> None:
@@ -193,6 +217,42 @@ class DatabaseSchedulerService:
                 scheduled_reel.status = "failed"
                 scheduled_reel.publish_error = error
                 db.commit()
+    
+    def reset_stuck_publishing(self, max_age_minutes: int = 10) -> int:
+        """
+        Reset any posts stuck in 'publishing' status for too long.
+        This handles cases where the server crashed during publishing.
+        
+        Args:
+            max_age_minutes: Max minutes a post can be in 'publishing' before reset
+            
+        Returns:
+            Number of posts reset
+        """
+        from datetime import timedelta
+        
+        with get_db_session() as db:
+            cutoff = datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)
+            
+            # Find posts stuck in 'publishing' for too long
+            stuck = db.query(ScheduledReel).filter(
+                and_(
+                    ScheduledReel.status == "publishing",
+                    ScheduledReel.scheduled_time <= cutoff
+                )
+            ).all()
+            
+            count = 0
+            for reel in stuck:
+                reel.status = "scheduled"  # Reset to allow retry
+                reel.publish_error = f"Reset after being stuck in publishing for >{max_age_minutes} minutes"
+                count += 1
+            
+            if count > 0:
+                db.commit()
+                print(f"⚠️ Reset {count} stuck publishing post(s)")
+            
+            return count
     
     def publish_now(
         self,

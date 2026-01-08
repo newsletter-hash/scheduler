@@ -182,6 +182,11 @@
             border-left: 4px solid #00435c;
         }
         
+        .schedule-item.publishing {
+            border-left: 4px solid #ffc107;
+            background: #fffbf0;
+        }
+        
         .schedule-item.published {
             border-left: 4px solid #28a745;
             background: #f8fff9;
@@ -216,6 +221,11 @@
         .status-scheduled {
             background: #d1ecf1;
             color: #0c5460;
+        }
+        
+        .status-publishing {
+            background: #fff3cd;
+            color: #856404;
         }
         
         .status-published {
@@ -400,6 +410,10 @@
             <div class="stat-card">
                 <div class="stat-number" id="pendingCount">-</div>
                 <div class="stat-label">Scheduled</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%);">
+                <div class="stat-number" id="publishingCount">-</div>
+                <div class="stat-label">Publishing</div>
             </div>
             <div class="stat-card success">
                 <div class="stat-number" id="publishedCount">-</div>
@@ -647,11 +661,13 @@
                 // Update stats
                 const totalCount = schedules.length;
                 const pendingCount = schedules.filter(s => s.status === 'scheduled').length;
+                const publishingCount = schedules.filter(s => s.status === 'publishing').length;
                 const publishedCount = schedules.filter(s => s.status === 'published').length;
                 const failedCount = schedules.filter(s => s.status === 'failed').length;
                 
                 document.getElementById('totalCount').textContent = totalCount;
                 document.getElementById('pendingCount').textContent = pendingCount;
+                document.getElementById('publishingCount').textContent = publishingCount;
                 document.getElementById('publishedCount').textContent = publishedCount;
                 document.getElementById('failedCount').textContent = failedCount;
                 
@@ -668,21 +684,29 @@
                 }
                 
                 // Group by status
+                const publishing = schedules.filter(s => s.status === 'publishing');
                 const pending = schedules.filter(s => s.status === 'scheduled');
                 const published = schedules.filter(s => s.status === 'published');
                 const failed = schedules.filter(s => s.status === 'failed');
                 
                 // Sort each group by time (newest first for published/failed, upcoming first for scheduled)
+                publishing.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time));
                 pending.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time));
                 published.sort((a, b) => new Date(b.published_at || b.scheduled_time) - new Date(a.published_at || a.scheduled_time));
                 failed.sort((a, b) => new Date(b.scheduled_time) - new Date(a.scheduled_time));
                 
-                // Combine: pending first, then published, then failed
-                const sortedSchedules = [...pending, ...published, ...failed];
+                // Combine: publishing first, then pending, then published, then failed
+                const sortedSchedules = [...publishing, ...pending, ...published, ...failed];
                 
-                listContainer.innerHTML = schedules.map(schedule => {
+                listContainer.innerHTML = sortedSchedules.map(schedule => {
                     const platforms = schedule.platforms || [];
                     const statusClass = schedule.status || 'scheduled';
+                    
+                    // Get status icon
+                    let statusIcon = '⏰';
+                    if (statusClass === 'publishing') statusIcon = '🔄';
+                    else if (statusClass === 'published') statusIcon = '✅';
+                    else if (statusClass === 'failed') statusIcon = '❌';
                     
                     return `
                         <div class="schedule-item ${statusClass}">
@@ -694,7 +718,7 @@
                                     </div>
                                 </div>
                                 <span class="schedule-status status-${statusClass}">
-                                    ${statusClass === 'scheduled' ? '⏰' : statusClass === 'published' ? '✅' : '❌'} 
+                                    ${statusIcon} 
                                     ${statusClass}
                                 </span>
                             </div>
@@ -714,7 +738,7 @@
                                 
                                 <div class="detail-row">
                                     <span class="detail-label">Caption</span>
-                                    <span class="detail-value">${schedule.caption || 'N/A'}</span>
+                                    <span class="detail-value" style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(schedule.caption || 'N/A').substring(0, 150)}${schedule.caption && schedule.caption.length > 150 ? '...' : ''}</span>
                                 </div>
                                 
                                 <div class="detail-row">
@@ -730,8 +754,24 @@
                             ` : ''}
                             
                             ${schedule.published_at ? `
-                                <div style="margin-top: 10px; font-size: 14px; color: #28a745;">
-                                    ✅ Published on ${formatDate(schedule.published_at)}
+                                <div style="margin-top: 10px; padding: 12px; background: #e8f5e9; border-radius: 6px; font-size: 14px; color: #2e7d32;">
+                                    <strong>✅ Published</strong> on ${formatDate(schedule.published_at)}
+                                    ${schedule.metadata && schedule.metadata.post_ids ? `
+                                        <div style="margin-top: 8px; font-size: 13px;">
+                                            ${Object.entries(schedule.metadata.post_ids).map(([platform, postId]) => `
+                                                <span style="display: inline-block; background: #c8e6c9; padding: 4px 8px; border-radius: 4px; margin-right: 8px;">
+                                                    ${platform === 'instagram' ? '📸' : '📘'} ${platform}: ${postId}
+                                                </span>
+                                            `).join('')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${statusClass === 'publishing' ? `
+                                <div style="margin-top: 10px; padding: 12px; background: #fff3cd; border-radius: 6px; font-size: 14px; color: #856404;">
+                                    <strong>🔄 Publishing in progress...</strong>
+                                    <div style="margin-top: 4px; font-size: 13px;">This may take 1-3 minutes while the video is processed.</div>
                                 </div>
                             ` : ''}
                             
