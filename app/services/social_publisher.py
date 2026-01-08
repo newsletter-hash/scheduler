@@ -161,6 +161,7 @@ class SocialPublisher:
             container_url = f"https://graph.facebook.com/{self.api_version}/{self.ig_business_account_id}/media"
             
             print(f"📤 Video URL for Instagram: {video_url}")
+            print(f"   Instagram Account ID: {self.ig_business_account_id}")
             
             container_payload = {
                 "media_type": "REELS",
@@ -177,12 +178,20 @@ class SocialPublisher:
             container_response = requests.post(container_url, data=container_payload, timeout=30)
             container_data = container_response.json()
             
+            print(f"   Container response: {container_data}")
+            
             if "error" in container_data:
+                error_msg = container_data["error"].get("message", "Unknown error")
+                error_code = container_data["error"].get("code", "")
+                error_subcode = container_data["error"].get("error_subcode", "")
+                print(f"   ❌ Container error: {error_msg} (code: {error_code}, subcode: {error_subcode})")
                 return {
                     "success": False,
-                    "error": container_data["error"].get("message", "Unknown error"),
+                    "error": error_msg,
                     "platform": "instagram",
-                    "step": "create_container"
+                    "step": "create_container",
+                    "error_code": error_code,
+                    "error_subcode": error_subcode
                 }
             
             creation_id = container_data.get("id")
@@ -380,18 +389,29 @@ class SocialPublisher:
                 }
             
             print(f"✅ Upload session initialized: {video_id}")
+            print(f"   Upload URL: {upload_url}")
             
             # Step 2: Upload the video using hosted file URL
+            # According to FB docs: POST to rupload.facebook.com with file_url header
             print(f"📤 Uploading video to Facebook...")
+            
+            # The upload_url returned should be used directly
+            # Headers: Authorization and file_url
+            upload_headers = {
+                "Authorization": f"OAuth {page_access_token}",
+                "file_url": video_url
+            }
+            
+            print(f"   Using headers: Authorization=OAuth [token], file_url={video_url}")
             
             upload_response = requests.post(
                 upload_url,
-                headers={
-                    "Authorization": f"OAuth {page_access_token}",
-                    "file_url": video_url
-                },
+                headers=upload_headers,
                 timeout=120
             )
+            
+            print(f"   Response status: {upload_response.status_code}")
+            print(f"   Response body: {upload_response.text[:500] if upload_response.text else 'empty'}")
             
             # Check if upload was successful
             try:
@@ -405,9 +425,12 @@ class SocialPublisher:
                         "platform": "facebook",
                         "step": "upload"
                     }
-            except:
+                # Check for success field
+                if upload_data.get("success") == True:
+                    print(f"   ✅ Upload confirmed successful")
+            except Exception as json_err:
                 # Response might not be JSON
-                pass
+                print(f"   ⚠️ Could not parse response as JSON: {json_err}")
             
             if upload_response.status_code != 200:
                 print(f"   ❌ Upload failed with status {upload_response.status_code}: {upload_response.text}")
