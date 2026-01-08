@@ -139,7 +139,14 @@ class SocialPublisher:
         thumbnail_url: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Publish a Reel to Instagram using the two-step process.
+        Publish a Reel to Instagram using the Resumable Upload process.
+        This is more reliable than the standard video_url method.
+        
+        Steps:
+        1. Create resumable upload session (returns container_id + upload uri)
+        2. Upload video via file_url header to rupload.facebook.com
+        3. Wait for processing
+        4. Publish the container
         
         Args:
             video_url: Public URL to the video file (must be accessible)
@@ -157,24 +164,22 @@ class SocialPublisher:
             }
         
         try:
-            # Step 1: Create media container
+            # Step 1: Create RESUMABLE upload session (not standard video_url)
             container_url = f"https://graph.facebook.com/{self.api_version}/{self.ig_business_account_id}/media"
             
             print(f"📤 Video URL for Instagram: {video_url}")
             print(f"   Instagram Account ID: {self.ig_business_account_id}")
+            print(f"   Using RESUMABLE upload method...")
             
+            # Create resumable session - this returns container ID + upload URI
             container_payload = {
                 "media_type": "REELS",
-                "video_url": video_url,
+                "upload_type": "resumable",  # Key difference: use resumable upload
                 "caption": caption,
                 "access_token": self.ig_access_token
             }
             
-            # Add thumbnail if provided
-            if thumbnail_url:
-                container_payload["thumb_offset"] = 0  # Use first frame, or provide custom offset
-            
-            print(f"📸 Creating Instagram Reel container...")
+            print(f"📸 Creating Instagram Reel resumable container...")
             container_response = requests.post(container_url, data=container_payload, timeout=30)
             container_data = container_response.json()
             
@@ -195,6 +200,8 @@ class SocialPublisher:
                 }
             
             creation_id = container_data.get("id")
+            upload_uri = container_data.get("uri")
+            
             if not creation_id:
                 return {
                     "success": False,
@@ -202,9 +209,62 @@ class SocialPublisher:
                     "platform": "instagram"
                 }
             
-            print(f"✅ Container created: {creation_id}")
+            if not upload_uri:
+                # Fallback: construct upload URI manually
+                upload_uri = f"https://rupload.facebook.com/ig-api-upload/{self.api_version}/{creation_id}"
+                print(f"   ⚠️ No URI in response, constructed: {upload_uri}")
             
-            # Step 1.5: Wait for video processing with status checks
+            print(f"✅ Container created: {creation_id}")
+            print(f"   Upload URI: {upload_uri}")
+            
+            # Step 2: Upload video via hosted URL using rupload.facebook.com
+            print(f"📤 Uploading video to Instagram via rupload...")
+            
+            upload_headers = {
+                "Authorization": f"OAuth {self.ig_access_token}",
+                "file_url": video_url
+            }
+            
+            print(f"   Headers: Authorization=OAuth [hidden], file_url={video_url}")
+            
+            upload_response = requests.post(
+                upload_uri,
+                headers=upload_headers,
+                timeout=120
+            )
+            
+            print(f"   Upload response status: {upload_response.status_code}")
+            print(f"   Upload response body: {upload_response.text[:500] if upload_response.text else 'empty'}")
+            
+            # Check upload response
+            try:
+                upload_data = upload_response.json()
+                if "error" in upload_data:
+                    error_msg = upload_data["error"].get("message", "Unknown error")
+                    print(f"   ❌ Upload error: {error_msg}")
+                    return {
+                        "success": False,
+                        "error": f"Upload failed: {error_msg}",
+                        "platform": "instagram",
+                        "step": "upload"
+                    }
+                if upload_data.get("success") == True:
+                    print(f"   ✅ Upload confirmed successful")
+            except Exception as json_err:
+                print(f"   ⚠️ Could not parse upload response as JSON: {json_err}")
+            
+            if upload_response.status_code != 200:
+                print(f"   ❌ Upload failed with status {upload_response.status_code}")
+                return {
+                    "success": False,
+                    "error": f"Upload failed with status {upload_response.status_code}: {upload_response.text[:200]}",
+                    "platform": "instagram",
+                    "step": "upload"
+                }
+            
+            print(f"✅ Video uploaded successfully")
+            
+            # Step 3: Wait for video processing with status checks
             status_url = f"https://graph.facebook.com/{self.api_version}/{creation_id}"
             max_wait_seconds = 180  # Wait up to 3 minutes for processing
             check_interval = 5  # Check every 5 seconds
@@ -265,7 +325,7 @@ class SocialPublisher:
                     "creation_id": creation_id
                 }
             
-            # Step 2: Publish the container
+            # Step 4: Publish the container
             publish_url = f"https://graph.facebook.com/{self.api_version}/{self.ig_business_account_id}/media_publish"
             
             publish_payload = {
@@ -395,17 +455,27 @@ class SocialPublisher:
             # According to FB docs: POST to rupload.facebook.com with file_url header
             print(f"📤 Uploading video to Facebook...")
             
-            # The upload_url returned should be used directly
-            # Headers: Authorization and file_url
+            # Build the correct upload URL format: https://rupload.facebook.com/video-upload/{api_version}/{video_id}
+            # Sometimes the returned URL might not include the version, so we construct it
+            if "rupload.facebook.com" in upload_url:
+                # Use the URL as-is if it's the rupload URL
+                actual_upload_url = upload_url
+            else:
+                # Construct it manually
+                actual_upload_url = f"https://rupload.facebook.com/video-upload/{self.api_version}/{video_id}"
+            
+            print(f"   Upload URL: {actual_upload_url}")
+            
+            # Headers for hosted file upload (exactly as per FB docs)
             upload_headers = {
                 "Authorization": f"OAuth {page_access_token}",
                 "file_url": video_url
             }
             
-            print(f"   Using headers: Authorization=OAuth [token], file_url={video_url}")
+            print(f"   Headers: Authorization=OAuth [hidden], file_url={video_url}")
             
             upload_response = requests.post(
-                upload_url,
+                actual_upload_url,
                 headers=upload_headers,
                 timeout=120
             )
