@@ -1,6 +1,12 @@
 #!/bin/bash
 # Local Testing Script - Run this to test the app locally with SQLite
 
+# Kill any existing server on port 8000
+echo "🔍 Checking for existing server on port 8000..."
+pkill -f "uvicorn app.main:app" 2>/dev/null && echo "✅ Stopped existing server" || echo "✓ No server running"
+sleep 1
+
+echo ""
 echo "🚀 Starting Instagram Reels Automation (Local Mode)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
