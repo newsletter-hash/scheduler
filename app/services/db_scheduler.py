@@ -27,7 +27,9 @@ class DatabaseSchedulerService:
         platforms: list[str] = ["instagram"],
         video_path: Optional[Path] = None,
         thumbnail_path: Optional[Path] = None,
-        user_name: Optional[str] = None
+        user_name: Optional[str] = None,
+        brand: Optional[str] = None,
+        variant: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Schedule a reel for future publishing.
@@ -41,6 +43,8 @@ class DatabaseSchedulerService:
             video_path: Path to video file
             thumbnail_path: Path to thumbnail
             user_name: Display name for the user
+            brand: Brand name ("gymcollege" or "healthycollege")
+            variant: Variant type ("light" or "dark")
             
         Returns:
             Schedule details with schedule_id
@@ -52,6 +56,7 @@ class DatabaseSchedulerService:
         print(f"   Reel ID: {reel_id}")
         print(f"   Scheduled time: {scheduled_time}")
         print(f"   Platforms: {platforms}")
+        print(f"   Brand: {brand}, Variant: {variant}")
         
         try:
             with get_db_session() as db:
@@ -65,7 +70,9 @@ class DatabaseSchedulerService:
                 metadata = {
                     "platforms": platforms,
                     "video_path": str(video_path) if video_path else None,
-                    "thumbnail_path": str(thumbnail_path) if thumbnail_path else None
+                    "thumbnail_path": str(thumbnail_path) if thumbnail_path else None,
+                    "brand": brand,
+                    "variant": variant or "light"
                 }
                 print(f"   ✅ Metadata prepared: {metadata}")
                 
@@ -400,3 +407,143 @@ class DatabaseSchedulerService:
                 db.commit()
             
             return user.to_dict()
+
+    def get_next_available_slot(
+        self,
+        brand: str,
+        variant: str,
+        reference_date: Optional[datetime] = None
+    ) -> datetime:
+        """
+        Get the next available scheduling slot for a brand+variant combo.
+        
+        Slot Rules:
+        - Light mode: 12 AM, 8 AM, 4 PM (every 8 hours starting at midnight)
+        - Dark mode: 4 AM, 12 PM, 8 PM (every 8 hours starting at 4 AM)
+        
+        Starting from January 16, 2026, or today if after that date.
+        Each brand has its own independent schedule.
+        
+        Args:
+            brand: Brand name ("gymcollege" or "healthycollege")
+            variant: "light" or "dark"
+            reference_date: Optional reference date (defaults to now)
+            
+        Returns:
+            Next available datetime for scheduling
+        """
+        from datetime import timedelta
+        
+        # Define slot hours
+        LIGHT_SLOTS = [0, 8, 16]   # 12 AM, 8 AM, 4 PM
+        DARK_SLOTS = [4, 12, 20]   # 4 AM, 12 PM, 8 PM
+        
+        slots = LIGHT_SLOTS if variant == "light" else DARK_SLOTS
+        
+        # Starting reference point
+        start_date = datetime(2026, 1, 16, tzinfo=timezone.utc)
+        now = reference_date or datetime.now(timezone.utc)
+        
+        # Use the later of start_date or now
+        base_date = max(start_date, now)
+        
+        # Get all scheduled posts for this brand+variant
+        with get_db_session() as db:
+            # Get schedules for this brand that are scheduled or publishing
+            # Filter by variant in metadata
+            schedules = db.query(ScheduledReel).filter(
+                and_(
+                    ScheduledReel.status.in_(["scheduled", "publishing"]),
+                    ScheduledReel.scheduled_time >= start_date
+                )
+            ).all()
+            
+            # Filter by brand and variant
+            occupied_slots = set()
+            for schedule in schedules:
+                metadata = schedule.extra_data or {}
+                schedule_brand = metadata.get("brand", "").lower()
+                schedule_variant = metadata.get("variant", "light")
+                
+                # Match by brand name (normalize gymcollege and healthycollege)
+                brand_match = (
+                    (brand.lower() == "gymcollege" and schedule_brand in ["gymcollege", "the_gym_college", ""]) or
+                    (brand.lower() == "healthycollege" and schedule_brand in ["healthycollege", "wellness_life"])
+                )
+                
+                if brand_match and schedule_variant == variant:
+                    # Store as timestamp for easy comparison
+                    occupied_slots.add(schedule.scheduled_time.replace(tzinfo=timezone.utc).timestamp())
+        
+        # Find next available slot starting from base_date
+        current = base_date.replace(minute=0, second=0, microsecond=0)
+        
+        # Find the next valid slot hour on or after current time
+        max_iterations = 365 * 3  # Don't search more than 3*365 slot checks (~1 year)
+        
+        for _ in range(max_iterations):
+            for hour in slots:
+                candidate = current.replace(hour=hour)
+                
+                # Skip if in the past
+                if candidate <= now:
+                    continue
+                
+                # Check if slot is available
+                if candidate.timestamp() not in occupied_slots:
+                    return candidate
+            
+            # Move to next day
+            current = current + timedelta(days=1)
+            current = current.replace(hour=0)
+        
+        # Fallback: just return tomorrow at first slot
+        tomorrow = now + timedelta(days=1)
+        return tomorrow.replace(hour=slots[0], minute=0, second=0, microsecond=0)
+
+    def get_scheduled_slots_for_brand(
+        self,
+        brand: str,
+        variant: str,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> list[datetime]:
+        """
+        Get all scheduled/occupied slots for a brand+variant combo.
+        
+        Args:
+            brand: Brand name
+            variant: "light" or "dark"
+            start_date: Optional start filter
+            end_date: Optional end filter
+            
+        Returns:
+            List of occupied datetime slots
+        """
+        with get_db_session() as db:
+            query = db.query(ScheduledReel).filter(
+                ScheduledReel.status.in_(["scheduled", "publishing"])
+            )
+            
+            if start_date:
+                query = query.filter(ScheduledReel.scheduled_time >= start_date)
+            if end_date:
+                query = query.filter(ScheduledReel.scheduled_time <= end_date)
+            
+            schedules = query.all()
+            
+            occupied = []
+            for schedule in schedules:
+                metadata = schedule.extra_data or {}
+                schedule_brand = metadata.get("brand", "").lower()
+                schedule_variant = metadata.get("variant", "light")
+                
+                brand_match = (
+                    (brand.lower() == "gymcollege" and schedule_brand in ["gymcollege", "the_gym_college", ""]) or
+                    (brand.lower() == "healthycollege" and schedule_brand in ["healthycollege", "wellness_life"])
+                )
+                
+                if brand_match and schedule_variant == variant:
+                    occupied.append(schedule.scheduled_time)
+            
+            return sorted(occupied)

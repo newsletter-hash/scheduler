@@ -246,41 +246,15 @@
             border-left: 4px solid #00435c;
         }
         
-        .toast.success {
-            border-left-color: #28a745;
-        }
+        .toast.success { border-left-color: #28a745; }
+        .toast.error { border-left-color: #dc3545; }
+        .toast.info { border-left-color: #17a2b8; }
+        .toast.warning { border-left-color: #ffc107; }
         
-        .toast.error {
-            border-left-color: #dc3545;
-        }
-        
-        .toast.info {
-            border-left-color: #17a2b8;
-        }
-        
-        .toast.warning {
-            border-left-color: #ffc107;
-        }
-        
-        .toast-icon {
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-        
-        .toast-content {
-            flex: 1;
-        }
-        
-        .toast-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: #333;
-        }
-        
-        .toast-message {
-            font-size: 14px;
-            color: #666;
-        }
+        .toast-icon { font-size: 24px; flex-shrink: 0; }
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 600; margin-bottom: 4px; color: #333; }
+        .toast-message { font-size: 14px; color: #666; }
         
         .toast-close {
             background: none;
@@ -291,36 +265,18 @@
             padding: 0;
             width: 24px;
             height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
-        .toast-close:hover {
-            background: none;
-            color: #333;
-        }
+        .toast-close:hover { background: none; color: #333; }
         
         @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
         @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
         }
         
         /* Loading Overlay */
@@ -337,9 +293,7 @@
             z-index: 9999;
         }
         
-        .loading-overlay.active {
-            display: flex;
-        }
+        .loading-overlay.active { display: flex; }
         
         .loading-spinner {
             background: white;
@@ -363,294 +317,472 @@
             100% { transform: rotate(360deg); }
         }
         
-        .loading-text {
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
+        .loading-text { color: #333; font-weight: 600; margin-bottom: 5px; }
+        .loading-subtext { color: #666; font-size: 14px; }
         
-        .loading-subtext {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        /* Progress Bar */
-        .progress-container {
-            margin-top: 15px;
+        /* Schedule All Button */
+        .schedule-all-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
             display: none;
         }
         
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
+        .schedule-all-section h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 18px;
         }
         
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00435c, #006d8f);
-            width: 0;
-            transition: width 0.3s ease;
-        }
-        
-        .progress-text {
-            text-align: center;
-            margin-top: 8px;
+        .schedule-all-section p {
+            color: rgba(255,255,255,0.9);
             font-size: 14px;
-            color: #666;
+            margin-bottom: 15px;
         }
         
-        /* Enhanced buttons */
-        button {
-            position: relative;
-            overflow: hidden;
+        .schedule-all-btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 24px;
+            font-weight: 600;
         }
         
-        button.loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            margin: -10px 0 0 -10px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
+        .schedule-all-btn:hover { background: #f0f0f0; }
+        
+        .next-slots-preview {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
         
-        button.loading {
-            color: transparent;
+        .slot-chip {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
+        
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 { color: #00435c; font-size: 20px; }
+        
+        .modal-close {
+            background: #f1f5f9;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #64748b;
+        }
+        
+        .modal-close:hover { background: #e2e8f0; }
+        
+        /* Scheduling Mode Toggle */
+        .schedule-mode-toggle {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .mode-btn.active {
+            background: white;
+            color: #00435c;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        /* Auto Schedule Info */
+        .auto-schedule-info {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .auto-schedule-info h4 {
+            color: #166534;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .auto-schedule-info p {
+            color: #15803d;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .auto-schedule-info .slot-time {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        /* Manual Schedule Inputs */
+        .manual-schedule-inputs { display: none; }
+        .manual-schedule-inputs.active { display: block; }
+        
+        .date-time-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .date-time-row input, .date-time-row select {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .date-time-row input:focus, .date-time-row select:focus {
+            outline: none;
+            border-color: #00435c;
+        }
+        
+        .modal-form-group { margin-bottom: 16px; }
+        
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .modal-form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .modal-form-group textarea:focus {
+            outline: none;
+            border-color: #00435c;
+        }
+        
+        .platform-checkboxes {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .platform-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .modal-actions button { flex: 1; }
+        
+        .btn-cancel { background: #e2e8f0; color: #475569; }
+        .btn-cancel:hover { background: #cbd5e1; }
+        .btn-schedule { background: #10b981; }
+        .btn-schedule:hover { background: #059669; }
+        .btn-publish-now { background: #3b82f6; }
+        .btn-publish-now:hover { background: #2563eb; }
+        
+        .slot-rules {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #92400e;
+        }
+        
+        .slot-rules strong { display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-brand">
-                🎬 Reels Automation
-            </a>
+            <a href="/" class="nav-brand">🎬 Reels Automation</a>
             <ul class="nav-links">
                 <li><a href="/" class="active">📝 Generator</a></li>
-                <li><a href="/scheduled">📅 Post History</a></li>
+                <li><a href="/scheduled">📅 Calendar</a></li>
                 <li><a href="/docs" target="_blank">📚 API Docs</a></li>
             </ul>
         </div>
     </nav>
     
     <div class="content-wrapper">
-    
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-    
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <div class="loading-text" id="loadingText">Processing...</div>
-            <div class="loading-subtext" id="loadingSubtext">Please wait</div>
-        </div>
-    </div>
-    
-    <div class="container">
-        <h1>Instagram Reels Generator</h1>
+        <div class="toast-container" id="toastContainer"></div>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div style="flex: 1;"></div>
-            <a href="/scheduled" style="background: #17a2b8; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
-                📅 View Scheduled Posts
-            </a>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <div class="loading-text" id="loadingText">Processing...</div>
+                <div class="loading-subtext" id="loadingSubtext">Please wait</div>
+            </div>
         </div>
         
-        <form id="reelForm">
-            <div class="form-group">
-                <label for="title">Title</label>
-                <input type="text" id="title" name="title" placeholder="e.g., Ultimate Rice Guide" required>
-            </div>
+        <div class="container">
+            <h1>🎬 Instagram Reels Generator</h1>
             
-            <div class="form-group">
-                <label>Variant</label>
-                <div style="display: flex; gap: 15px;">
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        <input type="radio" name="variant" value="light" checked> Light Mode
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        <input type="radio" name="variant" value="dark"> Dark Mode
-                    </label>
+            <form id="reelForm">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" placeholder="e.g., Ultimate Rice Guide" required>
                 </div>
-                <div class="help-text">Choose light mode (uses templates) or dark mode (AI-generated backgrounds)</div>
-            </div>
-            
-            <div class="form-group" id="aiPromptGroup" style="display: none;">
-                <label for="aiPrompt">AI Background Prompt (Dark Mode Only)</label>
-                <textarea id="aiPrompt" name="aiPrompt" rows="4" placeholder="Describe the background you want for dark mode. Colors will be automatically adapted to dark blue (Gym College) or dark green (Healthy College).
-
-Example: A high-detail, cinematic health concept scene with oversized anatomical elements..."></textarea>
-                <div class="help-text">Optional: Customize the AI-generated background. Leave empty for default prompt.</div>
-            </div>
-            
-            <div class="form-group">
-                <label>Brands</label>
-                <div style="display: flex; gap: 15px;">
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        <input type="checkbox" name="brand" value="gymcollege" checked> Gym College
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        <input type="checkbox" name="brand" value="healthycollege" checked> Healthy College
-                    </label>
+                
+                <div class="form-group">
+                    <label>Variant</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="variant" value="light" checked> ☀️ Light Mode
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="variant" value="dark"> 🌙 Dark Mode
+                        </label>
+                    </div>
+                    <div class="help-text">Light: 12AM, 8AM, 4PM slots | Dark: 4AM, 12PM, 8PM slots</div>
                 </div>
-                <div class="help-text">Select which brands to generate (you can select both)</div>
-            </div>
-            
-            <div class="form-group">
-                <label for="content">Content Lines</label>
-                <textarea id="content" name="content" placeholder="Enter one item per line:
+                
+                <div class="form-group" id="aiPromptGroup" style="display: none;">
+                    <label for="aiPrompt">AI Background Prompt (Dark Mode Only)</label>
+                    <textarea id="aiPrompt" name="aiPrompt" rows="4" placeholder="Describe the background you want for dark mode."></textarea>
+                    <div class="help-text">Optional: Customize the AI-generated background.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Brands</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" name="brand" value="gymcollege" checked> 💪 Gym College
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" name="brand" value="healthycollege" checked> 🥗 Healthy College
+                        </label>
+                    </div>
+                    <div class="help-text">Each brand has its own independent schedule</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content">Content Lines</label>
+                    <textarea id="content" name="content" placeholder="Enter one item per line:
 Rice — Always rinse before cooking
 Garlic — Crush for maximum flavor
 Pasta — Salt the water generously
 Chicken — Let it rest after cooking" required></textarea>
-                <div class="help-text">Enter one line per item. Use "—" or "-" to separate keyword from description. Use **text** for bold formatting.</div>
-            </div>
+                    <div class="help-text">Enter one line per item. Use "—" or "-" to separate keyword from description.</div>
+                </div>
+                
+                <button type="submit" id="submitBtn">🎬 Generate Reels</button>
+            </form>
             
-            <button type="submit" id="submitBtn">Generate Reels</button>
-        </form>
-        
-        <div id="status" class="status"></div>
-        
-        <div id="preview" class="preview">
-            <h2>Generated Reels</h2>
+            <div id="status" class="status"></div>
             
-            <!-- Gym College -->
-            <div id="gymcollegePreview" style="display: none; margin-bottom: 40px;">
-                <h3 style="color: #00435c; margin-bottom: 15px;">Gym College</h3>
-                <div class="preview-grid">
-                    <div class="preview-item">
-                        <img id="thumbnailImggymcollege" alt="Thumbnail">
-                        <p>Thumbnail</p>
+            <!-- Preview Section -->
+            <div id="preview" class="preview">
+                <h2>Generated Reels</h2>
+                
+                <!-- Schedule All Section -->
+                <div class="schedule-all-section" id="scheduleAllSection">
+                    <h3>🚀 Quick Schedule All Brands</h3>
+                    <p>Auto-schedule all reels to their next available slots based on variant.</p>
+                    <button class="schedule-all-btn" onclick="scheduleAllBrands()">⚡ Schedule All to Next Slots</button>
+                    <div class="next-slots-preview" id="nextSlotsPreview"></div>
+                </div>
+                
+                <!-- Gym College Preview -->
+                <div id="gymcollegePreview" style="display: none; margin-bottom: 40px;">
+                    <h3 style="color: #00435c; margin-bottom: 15px;">💪 Gym College</h3>
+                    <div class="preview-grid">
+                        <div class="preview-item">
+                            <img id="thumbnailImggymcollege" alt="Thumbnail">
+                            <p>Thumbnail</p>
+                        </div>
+                        <div class="preview-item">
+                            <video id="reelVideogymcollege" controls style="width: 100%; border-radius: 8px;">
+                                <source id="videoSourcegymcollege" type="video/mp4">
+                            </video>
+                            <p>Reel Video</p>
+                        </div>
                     </div>
-                    <div class="preview-item">
-                        <video id="reelVideogymcollege" controls style="width: 100%; border-radius: 8px;">
-                            <source id="videoSourcegymcollege" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                        <p>Reel Video</p>
+                    <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <button onclick="downloadReel('gymcollege')">⬇️ Download</button>
+                        <button onclick="openScheduleModal('gymcollege')" style="background: #10b981;">📅 Schedule</button>
+                        <button onclick="publishNow('gymcollege')" style="background: #3b82f6;">📤 Publish Now</button>
                     </div>
                 </div>
-                <div class="download-section" style="display: block; margin-top: 15px;">
-                    <button onclick="downloadReel('gymcollege')">⬇️ Download Gym College to reels/gymcollege/</button>
-                    <button onclick="publishReel('gymcollege')" style="background: #00435c; margin-left: 10px;">📤 Publish to Instagram/Facebook</button>
-                </div>
-            </div>
-            
-            <!-- Healthy College -->
-            <div id="healthycollegePreview" style="display: none; margin-bottom: 40px;">
-                <h3 style="color: #006400; margin-bottom: 15px;">Healthy College</h3>
-                <div class="preview-grid">
-                    <div class="preview-item">
-                        <img id="thumbnailImghealthycollege" alt="Thumbnail">
-                        <p>Thumbnail</p>
+                
+                <!-- Healthy College Preview -->
+                <div id="healthycollegePreview" style="display: none; margin-bottom: 40px;">
+                    <h3 style="color: #006400; margin-bottom: 15px;">🥗 Healthy College</h3>
+                    <div class="preview-grid">
+                        <div class="preview-item">
+                            <img id="thumbnailImghealthycollege" alt="Thumbnail">
+                            <p>Thumbnail</p>
+                        </div>
+                        <div class="preview-item">
+                            <video id="reelVideohealthycollege" controls style="width: 100%; border-radius: 8px;">
+                                <source id="videoSourcehealthycollege" type="video/mp4">
+                            </video>
+                            <p>Reel Video</p>
+                        </div>
                     </div>
-                    <div class="preview-item">
-                        <video id="reelVideohealthycollege" controls style="width: 100%; border-radius: 8px;">
-                            <source id="videoSourcehealthycollege" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                        <p>Reel Video</p>
+                    <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <button onclick="downloadReel('healthycollege')">⬇️ Download</button>
+                        <button onclick="openScheduleModal('healthycollege')" style="background: #10b981;">📅 Schedule</button>
+                        <button onclick="publishNow('healthycollege')" style="background: #3b82f6;">📤 Publish Now</button>
                     </div>
-                </div>
-                <div class="download-section" style="display: block; margin-top: 15px;">
-                    <button onclick="downloadReel('healthycollege')">⬇️ Download Healthy College to reels/healthycollege/</button>
-                    <button onclick="publishReel('healthycollege')" style="background: #006400; margin-left: 10px;">📤 Publish to Instagram/Facebook</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Publishing Modal -->
-    <div id="publishModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%;">
-            <h3 style="margin-top: 0;">Publish Reel</h3>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Platforms:</label>
-                <label style="display: block; margin-bottom: 5px;">
-                    <input type="checkbox" id="publishInstagram" checked> Instagram
-                </label>
-                <label style="display: block;">
-                    <input type="checkbox" id="publishFacebook"> Facebook (optional)
-                </label>
+    <!-- Schedule Modal -->
+    <div class="modal" id="scheduleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="scheduleModalTitle">📅 Schedule Reel</h3>
+                <button class="modal-close" onclick="closeScheduleModal()">×</button>
             </div>
             
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Schedule (optional):</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="date" id="scheduleDate" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <input type="time" id="scheduleTime" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <div class="schedule-mode-toggle">
+                <button class="mode-btn active" id="autoModeBtn" onclick="setScheduleMode('auto')">⚡ Auto (Recommended)</button>
+                <button class="mode-btn" id="manualModeBtn" onclick="setScheduleMode('manual')">🔧 Manual</button>
+            </div>
+            
+            <div class="auto-schedule-info" id="autoScheduleInfo">
+                <h4>✨ Next Available Slot</h4>
+                <p class="slot-time" id="nextSlotTime">Loading...</p>
+                <p id="nextSlotDate">Calculating next available slot...</p>
+            </div>
+            
+            <div class="manual-schedule-inputs" id="manualScheduleInputs">
+                <div class="date-time-row">
+                    <input type="date" id="scheduleDate" min="">
+                    <input type="time" id="scheduleTime" step="3600">
                 </div>
-                <small style="color: #666;">Leave empty to publish immediately</small>
+                <div class="slot-rules">
+                    <strong>📌 Slot Rules:</strong>
+                    ☀️ Light Mode: 12:00 AM, 8:00 AM, 4:00 PM<br>
+                    🌙 Dark Mode: 4:00 AM, 12:00 PM, 8:00 PM
+                </div>
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Caption:</label>
-                <textarea id="publishCaption" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">CHANGE ME</textarea>
+            <div class="modal-form-group">
+                <label>Platforms</label>
+                <div class="platform-checkboxes">
+                    <label><input type="checkbox" id="platformInstagram" checked> 📸 Instagram</label>
+                    <label><input type="checkbox" id="platformFacebook"> 📘 Facebook</label>
+                </div>
             </div>
             
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="closePublishModal()" style="background: #ccc; padding: 10px 20px;">Cancel</button>
-                <button onclick="confirmPublish()" style="background: #4CAF50; color: white; padding: 10px 20px;">Publish</button>
+            <div class="modal-form-group">
+                <label for="scheduleCaption">Caption</label>
+                <textarea id="scheduleCaption" rows="4" placeholder="Enter your caption here...">CHANGE ME</textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeScheduleModal()">Cancel</button>
+                <button class="btn-schedule" onclick="confirmSchedule()">📅 Schedule</button>
             </div>
         </div>
     </div>
     
     <script>
+        // State
         const form = document.getElementById('reelForm');
         const status = document.getElementById('status');
         const preview = document.getElementById('preview');
         const submitBtn = document.getElementById('submitBtn');
-        let currentPublishBrand = null;
         
         let currentReels = {};
+        let currentVariant = 'light';
+        let currentScheduleBrand = null;
+        let scheduleMode = 'auto';
+        let nextSlots = {};
         
-        // Show/hide AI prompt field based on variant selection
+        // Show/hide AI prompt based on variant
         const variantRadios = document.querySelectorAll('input[name="variant"]');
         const aiPromptGroup = document.getElementById('aiPromptGroup');
         
         variantRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
-                if (e.target.value === 'dark') {
-                    aiPromptGroup.style.display = 'block';
-                } else {
-                    aiPromptGroup.style.display = 'none';
-                }
+                currentVariant = e.target.value;
+                aiPromptGroup.style.display = e.target.value === 'dark' ? 'block' : 'none';
             });
         });
         
-        function showStatus(message, type) {
-            status.textContent = message;
-            status.className = 'status ' + type;
-            status.style.display = 'block';
-        }
-        
-        function hideStatus() {
-            status.style.display = 'none';
-        }
-        
-        // Toast notification system
+        // Toast system
         function showToast(title, message, type = 'info', duration = 5000) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             
-            const icons = {
-                success: '✅',
-                error: '❌',
-                info: 'ℹ️',
-                warning: '⚠️'
-            };
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
             
             toast.innerHTML = `
                 <div class="toast-icon">${icons[type] || 'ℹ️'}</div>
@@ -671,38 +803,76 @@ Chicken — Let it rest after cooking" required></textarea>
             }
         }
         
-        // Loading overlay control
+        // Loading overlay
         function showLoading(text = 'Processing...', subtext = 'Please wait') {
-            const overlay = document.getElementById('loadingOverlay');
             document.getElementById('loadingText').textContent = text;
             document.getElementById('loadingSubtext').textContent = subtext;
-            overlay.classList.add('active');
+            document.getElementById('loadingOverlay').classList.add('active');
         }
         
         function hideLoading() {
             document.getElementById('loadingOverlay').classList.remove('active');
         }
         
-        async function downloadReel(brand) {
-            if (!currentReels[brand]) {
-                showToast('Download Failed', 'No reel to download for ' + brand, 'error');
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+        }
+        
+        // Fetch next available slots
+        async function fetchNextSlots() {
+            try {
+                const response = await fetch('/reels/next-slots');
+                if (response.ok) {
+                    const data = await response.json();
+                    nextSlots = data.slots;
+                    return nextSlots;
+                }
+            } catch (error) {
+                console.error('Failed to fetch next slots:', error);
+            }
+            return {};
+        }
+        
+        // Update schedule all preview
+        async function updateScheduleAllPreview() {
+            await fetchNextSlots();
+            
+            const previewDiv = document.getElementById('nextSlotsPreview');
+            const brands = Object.keys(currentReels);
+            
+            if (brands.length === 0) {
+                previewDiv.innerHTML = '';
                 return;
             }
             
-            const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+            let chips = '';
+            for (const brand of brands) {
+                const slot = nextSlots[brand]?.[currentVariant];
+                if (slot) {
+                    const brandIcon = brand === 'gymcollege' ? '💪' : '🥗';
+                    chips += `<div class="slot-chip">${brandIcon} ${slot.human_readable}</div>`;
+                }
+            }
+            
+            previewDiv.innerHTML = chips;
+        }
+        
+        // Download reel
+        async function downloadReel(brand) {
+            if (!currentReels[brand]) {
+                showToast('Error', 'No reel to download', 'error');
+                return;
+            }
             
             try {
-                showLoading('Downloading Reel', `Saving ${brandName} files to reels/${brand}/ folder...`);
+                showLoading('Downloading', `Saving ${brand} files...`);
                 
                 const response = await fetch('/reels/download', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        reel_id: currentReels[brand],
-                        brand: brand
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reel_id: currentReels[brand], brand: brand })
                 });
                 
                 hideLoading();
@@ -713,38 +883,264 @@ Chicken — Let it rest after cooking" required></textarea>
                 }
                 
                 const result = await response.json();
-                showToast(
-                    'Download Complete!',
-                    `${brandName} reel saved to: ${result.folder || 'reels/' + brand + '/'}`,
-                    'success',
-                    7000
-                );
-                showStatus(`✅ ${result.message}`, 'success');
-                
+                showToast('Downloaded!', result.message, 'success');
             } catch (error) {
                 hideLoading();
-                showToast(
-                    'Download Failed',
-                    error.message,
-                    'error'
-                );
-                showStatus('❌ Error: ' + error.message, 'error');
+                showToast('Download Failed', error.message, 'error');
             }
         }
         
+        // Open schedule modal
+        async function openScheduleModal(brand) {
+            if (!currentReels[brand]) {
+                showToast('Error', 'No reel to schedule', 'error');
+                return;
+            }
+            
+            currentScheduleBrand = brand;
+            const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+            document.getElementById('scheduleModalTitle').textContent = `📅 Schedule ${brandName}`;
+            
+            setScheduleMode('auto');
+            
+            await fetchNextSlots();
+            updateNextSlotDisplay();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('scheduleDate').min = today;
+            document.getElementById('scheduleDate').value = today;
+            
+            document.getElementById('scheduleModal').classList.add('active');
+        }
+        
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal').classList.remove('active');
+            currentScheduleBrand = null;
+        }
+        
+        function setScheduleMode(mode) {
+            scheduleMode = mode;
+            document.getElementById('autoModeBtn').classList.toggle('active', mode === 'auto');
+            document.getElementById('manualModeBtn').classList.toggle('active', mode === 'manual');
+            document.getElementById('autoScheduleInfo').style.display = mode === 'auto' ? 'block' : 'none';
+            document.getElementById('manualScheduleInputs').classList.toggle('active', mode === 'manual');
+        }
+        
+        function updateNextSlotDisplay() {
+            const slot = nextSlots[currentScheduleBrand]?.[currentVariant];
+            
+            if (slot) {
+                document.getElementById('nextSlotTime').textContent = slot.human_readable;
+                document.getElementById('nextSlotDate').textContent = `${currentVariant === 'light' ? '☀️ Light' : '🌙 Dark'} mode slot`;
+            } else {
+                document.getElementById('nextSlotTime').textContent = 'Unable to calculate';
+                document.getElementById('nextSlotDate').textContent = 'Please try manual mode';
+            }
+        }
+        
+        async function confirmSchedule() {
+            if (!currentScheduleBrand || !currentReels[currentScheduleBrand]) {
+                showToast('Error', 'No reel to schedule', 'error');
+                return;
+            }
+            
+            const platforms = [];
+            if (document.getElementById('platformInstagram').checked) platforms.push('instagram');
+            if (document.getElementById('platformFacebook').checked) platforms.push('facebook');
+            
+            if (platforms.length === 0) {
+                showToast('Error', 'Select at least one platform', 'error');
+                return;
+            }
+            
+            let scheduleDate, scheduleTime;
+            
+            if (scheduleMode === 'auto') {
+                const slot = nextSlots[currentScheduleBrand]?.[currentVariant];
+                if (!slot) {
+                    showToast('Error', 'Could not determine next slot', 'error');
+                    return;
+                }
+                scheduleDate = slot.date;
+                scheduleTime = slot.time;
+            } else {
+                scheduleDate = document.getElementById('scheduleDate').value;
+                scheduleTime = document.getElementById('scheduleTime').value;
+                
+                if (!scheduleDate || !scheduleTime) {
+                    showToast('Error', 'Please select date and time', 'error');
+                    return;
+                }
+                
+                const selectedDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
+                if (selectedDateTime <= new Date()) {
+                    showToast('Error', 'Cannot schedule in the past', 'error');
+                    return;
+                }
+            }
+            
+            const caption = document.getElementById('scheduleCaption').value || 'CHANGE ME';
+            
+            try {
+                closeScheduleModal();
+                showLoading('Scheduling', 'Setting up your post...');
+                
+                const response = await fetch('/reels/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reel_id: currentReels[currentScheduleBrand],
+                        caption: caption,
+                        platforms: platforms,
+                        schedule_date: scheduleDate,
+                        schedule_time: scheduleTime,
+                        brand: currentScheduleBrand,
+                        variant: currentVariant
+                    })
+                });
+                
+                hideLoading();
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to schedule');
+                }
+                
+                const datetime = new Date(`${scheduleDate}T${scheduleTime}`);
+                const formattedDate = datetime.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                const formattedTime = datetime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                
+                const brandName = currentScheduleBrand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+                showToast('Scheduled!', `${brandName} scheduled for ${formattedDate} at ${formattedTime}`, 'success', 8000);
+                
+                await fetchNextSlots();
+                updateScheduleAllPreview();
+                
+            } catch (error) {
+                hideLoading();
+                showToast('Schedule Failed', error.message, 'error');
+            }
+        }
+        
+        // Publish immediately
+        async function publishNow(brand) {
+            if (!currentReels[brand]) {
+                showToast('Error', 'No reel to publish', 'error');
+                return;
+            }
+            
+            if (!confirm(`Publish ${brand === 'gymcollege' ? 'Gym College' : 'Healthy College'} reel immediately?`)) {
+                return;
+            }
+            
+            try {
+                showLoading('Publishing', 'Uploading to Instagram...');
+                
+                const response = await fetch('/reels/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reel_id: currentReels[brand],
+                        caption: 'CHANGE ME',
+                        platforms: ['instagram'],
+                        brand: brand,
+                        variant: currentVariant
+                    })
+                });
+                
+                hideLoading();
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to publish');
+                }
+                
+                const result = await response.json();
+                
+                if (result.results?.instagram?.success) {
+                    showToast('Published!', 'Your reel is now live on Instagram! 🎉', 'success', 8000);
+                } else {
+                    const errorMsg = result.results?.instagram?.error || 'Unknown error';
+                    showToast('Publish Issue', errorMsg, 'warning', 8000);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showToast('Publish Failed', error.message, 'error');
+            }
+        }
+        
+        // Schedule all brands at once
+        async function scheduleAllBrands() {
+            const brands = Object.keys(currentReels);
+            
+            if (brands.length === 0) {
+                showToast('Error', 'No reels to schedule', 'error');
+                return;
+            }
+            
+            await fetchNextSlots();
+            
+            showLoading('Scheduling All', `Scheduling ${brands.length} reel(s)...`);
+            
+            let success = 0;
+            let failed = 0;
+            
+            for (const brand of brands) {
+                const slot = nextSlots[brand]?.[currentVariant];
+                
+                if (!slot) {
+                    failed++;
+                    continue;
+                }
+                
+                try {
+                    const response = await fetch('/reels/publish', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            reel_id: currentReels[brand],
+                            caption: 'CHANGE ME',
+                            platforms: ['instagram'],
+                            schedule_date: slot.date,
+                            schedule_time: slot.time,
+                            brand: brand,
+                            variant: currentVariant
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        success++;
+                        await fetchNextSlots();
+                    } else {
+                        failed++;
+                    }
+                } catch (error) {
+                    failed++;
+                }
+            }
+            
+            hideLoading();
+            
+            if (success > 0) {
+                showToast('Scheduled!', `${success} reel(s) scheduled successfully`, 'success', 6000);
+                await updateScheduleAllPreview();
+            }
+            
+            if (failed > 0) {
+                showToast('Partial Failure', `${failed} reel(s) failed to schedule`, 'warning', 6000);
+            }
+        }
+        
+        // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const title = document.getElementById('title').value.trim();
             const content = document.getElementById('content').value.trim();
+            currentVariant = document.querySelector('input[name="variant"]:checked').value;
+            const aiPrompt = currentVariant === 'dark' ? document.getElementById('aiPrompt').value.trim() : null;
             
-            // Get selected variant
-            const variant = document.querySelector('input[name="variant"]:checked').value;
-            
-            // Get AI prompt if dark mode
-            const aiPrompt = variant === 'dark' ? document.getElementById('aiPrompt').value.trim() : null;
-            
-            // Get selected brands
             const brandCheckboxes = document.querySelectorAll('input[name="brand"]:checked');
             const brands = Array.from(brandCheckboxes).map(cb => cb.value);
             
@@ -758,7 +1154,6 @@ Chicken — Let it rest after cooking" required></textarea>
                 return;
             }
             
-            // Parse content lines
             const lines = content.split('\n').filter(line => line.trim());
             
             if (lines.length === 0) {
@@ -767,47 +1162,32 @@ Chicken — Let it rest after cooking" required></textarea>
             }
             
             submitBtn.disabled = true;
-            hideStatus();
             preview.style.display = 'none';
             document.getElementById('gymcollegePreview').style.display = 'none';
             document.getElementById('healthycollegePreview').style.display = 'none';
+            document.getElementById('scheduleAllSection').style.display = 'none';
             currentReels = {};
             
-            const brandNames = brands.map(b => b === 'gymcollege' ? 'Gym College' : 'Healthy College');
-            const variantText = variant === 'dark' ? 'AI-generated backgrounds' : 'light mode';
-            
-            showLoading(
-                'Generating Reels',
-                `Creating ${brandNames.join(' and ')} with ${variantText}...`
-            );
+            const variantText = currentVariant === 'dark' ? 'AI backgrounds' : 'light mode';
+            showLoading('Generating Reels', `Creating ${brands.length} reel(s) with ${variantText}...`);
             
             try {
-                // Generate reels for each selected brand
-                let completedCount = 0;
-                const totalCount = brands.length;
-                
-                for (const brand of brands) {
+                for (let i = 0; i < brands.length; i++) {
+                    const brand = brands[i];
                     const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
                     
-                    showLoading(
-                        `Generating ${brandName}`,
-                        `Creating ${variant === 'dark' ? 'AI background, ' : ''}thumbnail and video... (${completedCount + 1}/${totalCount})`
-                    );
-                    
-                    const requestData = {
-                        title: title,
-                        content_lines: lines,
-                        brand: brand,
-                        variant: variant,
-                        ai_prompt: aiPrompt
-                    };
+                    showLoading(`Generating ${brandName}`, `Creating reel ${i + 1} of ${brands.length}...`);
                     
                     const response = await fetch('/reels/generate', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(requestData)
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: title,
+                            content_lines: lines,
+                            brand: brand,
+                            variant: currentVariant,
+                            ai_prompt: aiPrompt
+                        })
                     });
                     
                     if (!response.ok) {
@@ -818,7 +1198,6 @@ Chicken — Let it rest after cooking" required></textarea>
                     const result = await response.json();
                     currentReels[brand] = result.reel_id;
                     
-                    // Show preview for this brand
                     const timestamp = new Date().getTime();
                     document.getElementById('thumbnailImg' + brand).src = result.thumbnail_path + '?t=' + timestamp;
                     
@@ -829,213 +1208,38 @@ Chicken — Let it rest after cooking" required></textarea>
                     
                     document.getElementById(brand + 'Preview').style.display = 'block';
                     
-                    completedCount++;
-                    
-                    // Show success toast for this brand
-                    showToast(
-                        `${brandName} Ready!`,
-                        `Thumbnail and video generated successfully`,
-                        'success',
-                        3000
-                    );
+                    showToast(`${brandName} Ready!`, 'Thumbnail and video generated', 'success', 3000);
                 }
                 
                 hideLoading();
-                
-                showToast(
-                    'All Reels Generated!',
-                    `Successfully created ${totalCount} reel${totalCount > 1 ? 's' : ''}. You can now download or publish them.`,
-                    'success',
-                    6000
-                );
-                showStatus('✅ Reels generated successfully!', 'success');
                 preview.style.display = 'block';
+                
+                if (brands.length > 0) {
+                    document.getElementById('scheduleAllSection').style.display = 'block';
+                    await updateScheduleAllPreview();
+                }
+                
+                showToast('All Reels Generated!', `${brands.length} reel(s) ready. Schedule or publish them!`, 'success', 6000);
+                showStatus('✅ Reels generated successfully!', 'success');
                 
             } catch (error) {
                 hideLoading();
-                showToast(
-                    'Generation Failed',
-                    error.message,
-                    'error'
-                );
+                showToast('Generation Failed', error.message, 'error');
                 showStatus('❌ Error: ' + error.message, 'error');
             } finally {
                 submitBtn.disabled = false;
             }
         });
         
-        // Publishing functions
-        function publishReel(brand) {
-            currentPublishBrand = brand;
-            document.getElementById('publishModal').style.display = 'flex';
-        }
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeScheduleModal();
+        });
         
-        function closePublishModal() {
-            document.getElementById('publishModal').style.display = 'none';
-            currentPublishBrand = null;
-        }
-        
-        async function confirmPublish() {
-            if (!currentPublishBrand || !currentReels[currentPublishBrand]) {
-                showStatus('No reel to publish', 'error');
-                closePublishModal();
-                return;
-            }
-            
-            const platforms = [];
-            if (document.getElementById('publishInstagram').checked) platforms.push('instagram');
-            if (document.getElementById('publishFacebook').checked) platforms.push('facebook');
-            
-            if (platforms.length === 0) {
-                alert('Please select at least one platform');
-                return;
-            }
-            
-            const scheduleDate = document.getElementById('scheduleDate').value;
-            const scheduleTime = document.getElementById('scheduleTime').value;
-            const caption = document.getElementById('publishCaption').value;
-            
-            const requestData = {
-                reel_id: currentReels[currentPublishBrand],
-                caption: caption,
-                platforms: platforms,
-                brand: currentPublishBrand  // Add brand to request
-            };
-            
-            if (scheduleDate && scheduleTime) {
-                requestData.schedule_date = scheduleDate;
-                requestData.schedule_time = scheduleTime;
-            }
-            
-            // LOG REQUEST DATA
-            console.log('\n🚀 ========== PUBLISH/SCHEDULE REQUEST ==========');
-            console.log('📋 Request Data:', JSON.stringify(requestData, null, 2));
-            console.log('🎯 Endpoint: /reels/publish');
-            console.log('⏰ Is Scheduled:', !!(scheduleDate && scheduleTime));
-            console.log('===============================================\n');
-            
-            try {
-                closePublishModal();
-                
-                const isScheduled = scheduleDate && scheduleTime;
-                const platformText = platforms.join(' & ');
-                
-                if (isScheduled) {
-                    showLoading(
-                        'Scheduling Reel',
-                        `Setting up ${platformText} post for ${scheduleDate} at ${scheduleTime}...`
-                    );
-                } else {
-                    showLoading(
-                        'Publishing Reel',
-                        `Uploading to ${platformText}... This may take a minute.`
-                    );
-                }
-                
-                console.log('📤 Sending request...');
-                const response = await fetch('/reels/publish', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                });
-                
-                console.log('📨 Response status:', response.status, response.statusText);
-                
-                hideLoading();
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    console.error('❌ Error response:', error);
-                    throw new Error(error.detail || 'Failed to publish reel');
-                }
-                
-                const result = await response.json();
-                console.log('✅ Success response:', result);
-                
-                if (result.status === 'scheduled') {
-                    const datetime = new Date(`${scheduleDate}T${scheduleTime}`);
-                    const formattedDate = datetime.toLocaleDateString('en-US', { 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                    });
-                    const formattedTime = datetime.toLocaleTimeString('en-US', { 
-                        hour: 'numeric', 
-                        minute: '2-digit',
-                        hour12: true
-                    });
-                    
-                    showToast(
-                        'Reel Scheduled Successfully!',
-                        `Your reel will be published to ${platformText} on ${formattedDate} at ${formattedTime}`,
-                        'success',
-                        8000
-                    );
-                    showStatus(`✅ Reel scheduled for ${formattedDate} at ${formattedTime}`, 'success');
-                    
-                } else if (result.status === 'published') {
-                    const published = [];
-                    const failed = [];
-                    
-                    if (result.results.instagram) {
-                        if (result.results.instagram.success) {
-                            published.push('Instagram');
-                        } else {
-                            failed.push(`Instagram: ${result.results.instagram.error || 'Unknown error'}`);
-                        }
-                    }
-                    
-                    if (result.results.facebook) {
-                        if (result.results.facebook.success) {
-                            published.push('Facebook');
-                        } else {
-                            failed.push(`Facebook: ${result.results.facebook.error || 'Unknown error'}`);
-                        }
-                    }
-                    
-                    if (published.length > 0) {
-                        showToast(
-                            'Reel Published Successfully!',
-                            `Your reel is now live on ${published.join(' and ')}! 🎉`,
-                            'success',
-                            8000
-                        );
-                        showStatus(`✅ Published to: ${published.join(', ')}`, 'success');
-                    }
-                    
-                    if (failed.length > 0) {
-                        showToast(
-                            'Partial Publish',
-                            failed.join('\n'),
-                            'warning',
-                            10000
-                        );
-                    }
-                    
-                } else {
-                    showToast(
-                        'Publish Status Unknown',
-                        'The reel may have been published. Check your social media accounts and console for details.',
-                        'warning',
-                        8000
-                    );
-                    console.log('Publish result:', result);
-                }
-                
-            } catch (error) {
-                hideLoading();
-                showToast(
-                    'Publish Failed',
-                    error.message,
-                    'error',
-                    8000
-                );
-                showStatus('❌ Publish error: ' + error.message, 'error');
-            }
-        }
+        // Close modal on backdrop click
+        document.getElementById('scheduleModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('scheduleModal')) closeScheduleModal();
+        });
     </script>
-    </div>
 </body>
 </html>

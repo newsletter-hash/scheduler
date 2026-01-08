@@ -642,6 +642,7 @@ class PublishRequest(BaseModel):
     user_id: str = None  # User identifier (email or username)
     user_name: str = None  # Display name
     brand: str = None  # Brand name ("gymcollege" or "healthycollege")
+    variant: str = None  # Variant type ("light" or "dark")
 
 
 @router.post("/publish")
@@ -695,7 +696,9 @@ async def publish_reel(request: PublishRequest):
                 platforms=request.platforms,
                 video_path=video_path,
                 thumbnail_path=thumbnail_path,
-                user_name=request.user_name
+                user_name=request.user_name,
+                brand=request.brand,
+                variant=request.variant
             )
             
             return {
@@ -799,3 +802,93 @@ async def get_user(user_id: str):
             status_code=500,
             detail=f"Failed to get user: {str(e)}"
         )
+
+
+@router.get("/next-slot/{brand}/{variant}")
+async def get_next_available_slot(brand: str, variant: str):
+    """
+    Get the next available scheduling slot for a brand+variant combination.
+    
+    Slot Rules:
+    - Light mode: 12 AM, 8 AM, 4 PM (every 8 hours)
+    - Dark mode: 4 AM, 12 PM, 8 PM (every 8 hours)
+    
+    Each brand maintains its own independent schedule.
+    Starting from January 16, 2026 or today (whichever is later).
+    """
+    try:
+        if brand.lower() not in ["gymcollege", "healthycollege"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid brand: {brand}. Must be 'gymcollege' or 'healthycollege'"
+            )
+        
+        if variant.lower() not in ["light", "dark"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid variant: {variant}. Must be 'light' or 'dark'"
+            )
+        
+        next_slot = scheduler_service.get_next_available_slot(
+            brand=brand.lower(),
+            variant=variant.lower()
+        )
+        
+        return {
+            "brand": brand.lower(),
+            "variant": variant.lower(),
+            "next_slot": next_slot.isoformat(),
+            "date": next_slot.strftime("%Y-%m-%d"),
+            "time": next_slot.strftime("%H:%M"),
+            "human_readable": next_slot.strftime("%B %d, %Y at %I:%M %p")
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get next slot: {str(e)}"
+        )
+
+
+@router.get("/next-slots")
+async def get_all_next_slots():
+    """
+    Get the next available slots for all brand+variant combinations.
+    
+    Returns next slots for:
+    - gymcollege light
+    - gymcollege dark  
+    - healthycollege light
+    - healthycollege dark
+    """
+    try:
+        slots = {}
+        
+        for brand in ["gymcollege", "healthycollege"]:
+            slots[brand] = {}
+            for variant in ["light", "dark"]:
+                next_slot = scheduler_service.get_next_available_slot(
+                    brand=brand,
+                    variant=variant
+                )
+                slots[brand][variant] = {
+                    "next_slot": next_slot.isoformat(),
+                    "date": next_slot.strftime("%Y-%m-%d"),
+                    "time": next_slot.strftime("%H:%M"),
+                    "human_readable": next_slot.strftime("%B %d, %Y at %I:%M %p")
+                }
+        
+        return {
+            "slots": slots,
+            "slot_rules": {
+                "light": ["00:00", "08:00", "16:00"],
+                "dark": ["04:00", "12:00", "20:00"]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get next slots: {str(e)}"
+        )
+
