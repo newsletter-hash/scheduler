@@ -14,7 +14,73 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f5f5;
-            padding: 20px;
+            padding: 0;
+        }
+        
+        /* Navigation Bar */
+        .navbar {
+            background: linear-gradient(135deg, #00435c 0%, #006d8f 100%);
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .nav-brand {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-brand:hover {
+            opacity: 0.9;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 5px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.1);
+            border-bottom-color: rgba(255,255,255,0.5);
+        }
+        
+        .nav-links a.active {
+            background: rgba(255,255,255,0.15);
+            border-bottom-color: white;
+        }
+        
+        .content-wrapper {
+            padding: 30px 20px;
         }
         
         .container {
@@ -226,18 +292,6 @@
             margin-bottom: 10px;
         }
         
-        .back-link {
-            display: inline-block;
-            color: #00435c;
-            text-decoration: none;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        
-        .back-link:hover {
-            text-decoration: underline;
-        }
-        
         .loading {
             text-align: center;
             padding: 40px;
@@ -261,10 +315,24 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="/" class="back-link">← Back to Generator</a>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                🎬 Reels Automation
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">📝 Generator</a></li>
+                <li><a href="/scheduled" class="active">📅 Post History</a></li>
+                <li><a href="/docs" target="_blank">📚 API Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="content-wrapper">
+        <div class="container">
         
-        <div class="header-actions">
+            <div class="header-actions">
             <div>
                 <h1>📅 Post History</h1>
                 <p class="subtitle">View all scheduled, published, and failed Instagram & Facebook reels</p>
@@ -484,5 +552,7 @@
         // Auto-refresh every 30 seconds
         setInterval(loadSchedules, 30000);
     </script>
+    </div>
+    </div>
 </body>
 </html>
