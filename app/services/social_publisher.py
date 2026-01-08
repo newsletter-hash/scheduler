@@ -34,10 +34,14 @@ class SocialPublisher:
         
         self.api_version = "v19.0"
         
-        if not self.ig_access_token:
-            print("⚠️  Warning: Meta access token not found")
-        if not self.ig_business_account_id:
-            print("⚠️  Warning: INSTAGRAM_BUSINESS_ACCOUNT_ID not found")
+        # Debug output to show credential status
+        if self.ig_access_token and self.ig_business_account_id:
+            print(f"✅ Instagram credentials loaded (Account: {self.ig_business_account_id})")
+        else:
+            if not self.ig_access_token:
+                print("⚠️  Warning: Meta access token not found")
+            if not self.ig_business_account_id:
+                print("⚠️  Warning: INSTAGRAM_BUSINESS_ACCOUNT_ID not found")
     
     def publish_instagram_reel(
         self,
