@@ -1,0 +1,43 @@
+# Python dependencies for Instagram Reels Automation API
+
+# Web Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+
+# Image Processing
+Pillow>=11.0.0
+
+# Video Processing
+moviepy>=1.0.3
+
+# AI/ML
+openai>=1.0.0
+
+# Background Jobs & Scheduling
+apscheduler>=3.10.4
+
+# Database
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+alembic>=1.13.0
+
+# HTTP and Async
+httpx>=0.28.0
+python-multipart>=0.0.20
+requests>=2.32.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Date/Time handling
+python-dateutil==2.8.2
+
+# Development dependencies (optional)
+# Uncomment these for development
+# pytest==7.4.4
+# pytest-asyncio==0.23.3
+# black==23.12.1
+# flake8==7.0.0
+# mypy==1.8.0

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Reels Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #00435c;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #00435c;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            line-height: 1.6;
+        }
+        
+        .help-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        button {
+            background: #00435c;
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #003347;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .preview {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .preview h2 {
+            color: #00435c;
+            margin-bottom: 20px;
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .preview-item img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .preview-item p {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .download-section button {
+            background: #28a745;
+        }
+        
+        .download-section button:hover {
+            background: #218838;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+        
+        .toast {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid #00435c;
+        }
+        
+        .toast.success {
+            border-left-color: #28a745;
+        }
+        
+        .toast.error {
+            border-left-color: #dc3545;
+        }
+        
+        .toast.info {
+            border-left-color: #17a2b8;
+        }
+        
+        .toast.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .toast-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+        }
+        
+        .toast-message {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .toast-close:hover {
+            background: none;
+            color: #333;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00435c;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .loading-subtext {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00435c, #006d8f);
+            width: 0;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Enhanced buttons */
+        button {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        
+        button.loading {
+            color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingText">Processing...</div>
+            <div class="loading-subtext" id="loadingSubtext">Please wait</div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1>Instagram Reels Generator</h1>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="flex: 1;"></div>
+            <a href="/scheduled" style="background: #17a2b8; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                📅 View Scheduled Posts
+            </a>
+        </div>
+        
+        <form id="reelForm">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" placeholder="e.g., Ultimate Rice Guide" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Variant</label>
+                <div style="display: flex; gap: 15px;">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="variant" value="light" checked> Light Mode
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="variant" value="dark"> Dark Mode
+                    </label>
+                </div>
+                <div class="help-text">Choose light mode (uses templates) or dark mode (AI-generated backgrounds)</div>
+            </div>
+            
+            <div class="form-group" id="aiPromptGroup" style="display: none;">
+                <label for="aiPrompt">AI Background Prompt (Dark Mode Only)</label>
+                <textarea id="aiPrompt" name="aiPrompt" rows="4" placeholder="Describe the background you want for dark mode. Colors will be automatically adapted to dark blue (Gym College) or dark green (Healthy College).
+
+Example: A high-detail, cinematic health concept scene with oversized anatomical elements..."></textarea>
+                <div class="help-text">Optional: Customize the AI-generated background. Leave empty for default prompt.</div>
+            </div>
+            
+            <div class="form-group">
+                <label>Brands</label>
+                <div style="display: flex; gap: 15px;">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" name="brand" value="gymcollege" checked> Gym College
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" name="brand" value="healthycollege" checked> Healthy College
+                    </label>
+                </div>
+                <div class="help-text">Select which brands to generate (you can select both)</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">Content Lines</label>
+                <textarea id="content" name="content" placeholder="Enter one item per line:
+Rice — Always rinse before cooking
+Garlic — Crush for maximum flavor
+Pasta — Salt the water generously
+Chicken — Let it rest after cooking" required></textarea>
+                <div class="help-text">Enter one line per item. Use "—" or "-" to separate keyword from description. Use **text** for bold formatting.</div>
+            </div>
+            
+            <button type="submit" id="submitBtn">Generate Reels</button>
+        </form>
+        
+        <div id="status" class="status"></div>
+        
+        <div id="preview" class="preview">
+            <h2>Generated Reels</h2>
+            
+            <!-- Gym College -->
+            <div id="gymcollegePreview" style="display: none; margin-bottom: 40px;">
+                <h3 style="color: #00435c; margin-bottom: 15px;">Gym College</h3>
+                <div class="preview-grid">
+                    <div class="preview-item">
+                        <img id="thumbnailImggymcollege" alt="Thumbnail">
+                        <p>Thumbnail</p>
+                    </div>
+                    <div class="preview-item">
+                        <video id="reelVideogymcollege" controls style="width: 100%; border-radius: 8px;">
+                            <source id="videoSourcegymcollege" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>Reel Video</p>
+                    </div>
+                </div>
+                <div class="download-section" style="display: block; margin-top: 15px;">
+                    <button onclick="downloadReel('gymcollege')">⬇️ Download Gym College to reels/gymcollege/</button>
+                    <button onclick="publishReel('gymcollege')" style="background: #00435c; margin-left: 10px;">📤 Publish to Instagram/Facebook</button>
+                </div>
+            </div>
+            
+            <!-- Healthy College -->
+            <div id="healthycollegePreview" style="display: none; margin-bottom: 40px;">
+                <h3 style="color: #006400; margin-bottom: 15px;">Healthy College</h3>
+                <div class="preview-grid">
+                    <div class="preview-item">
+                        <img id="thumbnailImghealthycollege" alt="Thumbnail">
+                        <p>Thumbnail</p>
+                    </div>
+                    <div class="preview-item">
+                        <video id="reelVideohealthycollege" controls style="width: 100%; border-radius: 8px;">
+                            <source id="videoSourcehealthycollege" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>Reel Video</p>
+                    </div>
+                </div>
+                <div class="download-section" style="display: block; margin-top: 15px;">
+                    <button onclick="downloadReel('healthycollege')">⬇️ Download Healthy College to reels/healthycollege/</button>
+                    <button onclick="publishReel('healthycollege')" style="background: #006400; margin-left: 10px;">📤 Publish to Instagram/Facebook</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Publishing Modal -->
+    <div id="publishModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%;">
+            <h3 style="margin-top: 0;">Publish Reel</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Platforms:</label>
+                <label style="display: block; margin-bottom: 5px;">
+                    <input type="checkbox" id="publishInstagram" checked> Instagram
+                </label>
+                <label style="display: block;">
+                    <input type="checkbox" id="publishFacebook"> Facebook (optional)
+                </label>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Schedule (optional):</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="date" id="scheduleDate" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <input type="time" id="scheduleTime" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <small style="color: #666;">Leave empty to publish immediately</small>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Caption:</label>
+                <textarea id="publishCaption" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">CHANGE ME</textarea>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="closePublishModal()" style="background: #ccc; padding: 10px 20px;">Cancel</button>
+                <button onclick="confirmPublish()" style="background: #4CAF50; color: white; padding: 10px 20px;">Publish</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('reelForm');
+        const status = document.getElementById('status');
+        const preview = document.getElementById('preview');
+        const submitBtn = document.getElementById('submitBtn');
+        let currentPublishBrand = null;
+        
+        let currentReels = {};
+        
+        // Show/hide AI prompt field based on variant selection
+        const variantRadios = document.querySelectorAll('input[name="variant"]');
+        const aiPromptGroup = document.getElementById('aiPromptGroup');
+        
+        variantRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'dark') {
+                    aiPromptGroup.style.display = 'block';
+                } else {
+                    aiPromptGroup.style.display = 'none';
+                }
+            });
+        });
+        
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+        }
+        
+        function hideStatus() {
+            status.style.display = 'none';
+        }
+        
+        // Toast notification system
+        function showToast(title, message, type = 'info', duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || 'ℹ️'}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+        
+        // Loading overlay control
+        function showLoading(text = 'Processing...', subtext = 'Please wait') {
+            const overlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingSubtext').textContent = subtext;
+            overlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+        
+        async function downloadReel(brand) {
+            if (!currentReels[brand]) {
+                showToast('Download Failed', 'No reel to download for ' + brand, 'error');
+                return;
+            }
+            
+            const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+            
+            try {
+                showLoading('Downloading Reel', `Saving ${brandName} files to reels/${brand}/ folder...`);
+                
+                const response = await fetch('/reels/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        reel_id: currentReels[brand],
+                        brand: brand
+                    })
+                });
+                
+                hideLoading();
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to download');
+                }
+                
+                const result = await response.json();
+                showToast(
+                    'Download Complete!',
+                    `${brandName} reel saved to: ${result.folder || 'reels/' + brand + '/'}`,
+                    'success',
+                    7000
+                );
+                showStatus(`✅ ${result.message}`, 'success');
+                
+            } catch (error) {
+                hideLoading();
+                showToast(
+                    'Download Failed',
+                    error.message,
+                    'error'
+                );
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            
+            // Get selected variant
+            const variant = document.querySelector('input[name="variant"]:checked').value;
+            
+            // Get AI prompt if dark mode
+            const aiPrompt = variant === 'dark' ? document.getElementById('aiPrompt').value.trim() : null;
+            
+            // Get selected brands
+            const brandCheckboxes = document.querySelectorAll('input[name="brand"]:checked');
+            const brands = Array.from(brandCheckboxes).map(cb => cb.value);
+            
+            if (!title || !content) {
+                showStatus('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (brands.length === 0) {
+                showStatus('Please select at least one brand', 'error');
+                return;
+            }
+            
+            // Parse content lines
+            const lines = content.split('\n').filter(line => line.trim());
+            
+            if (lines.length === 0) {
+                showStatus('Please add at least one content line', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            hideStatus();
+            preview.style.display = 'none';
+            document.getElementById('gymcollegePreview').style.display = 'none';
+            document.getElementById('healthycollegePreview').style.display = 'none';
+            currentReels = {};
+            
+            const brandNames = brands.map(b => b === 'gymcollege' ? 'Gym College' : 'Healthy College');
+            const variantText = variant === 'dark' ? 'AI-generated backgrounds' : 'light mode';
+            
+            showLoading(
+                'Generating Reels',
+                `Creating ${brandNames.join(' and ')} with ${variantText}...`
+            );
+            
+            try {
+                // Generate reels for each selected brand
+                let completedCount = 0;
+                const totalCount = brands.length;
+                
+                for (const brand of brands) {
+                    const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+                    
+                    showLoading(
+                        `Generating ${brandName}`,
+                        `Creating ${variant === 'dark' ? 'AI background, ' : ''}thumbnail and video... (${completedCount + 1}/${totalCount})`
+                    );
+                    
+                    const requestData = {
+                        title: title,
+                        content_lines: lines,
+                        brand: brand,
+                        variant: variant,
+                        ai_prompt: aiPrompt
+                    };
+                    
+                    const response = await fetch('/reels/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Failed to generate reel');
+                    }
+                    
+                    const result = await response.json();
+                    currentReels[brand] = result.reel_id;
+                    
+                    // Show preview for this brand
+                    const timestamp = new Date().getTime();
+                    document.getElementById('thumbnailImg' + brand).src = result.thumbnail_path + '?t=' + timestamp;
+                    
+                    const videoElement = document.getElementById('reelVideo' + brand);
+                    const videoSource = document.getElementById('videoSource' + brand);
+                    videoSource.src = result.video_path + '?t=' + timestamp;
+                    videoElement.load();
+                    
+                    document.getElementById(brand + 'Preview').style.display = 'block';
+                    
+                    completedCount++;
+                    
+                    // Show success toast for this brand
+                    showToast(
+                        `${brandName} Ready!`,
+                        `Thumbnail and video generated successfully`,
+                        'success',
+                        3000
+                    );
+                }
+                
+                hideLoading();
+                
+                showToast(
+                    'All Reels Generated!',
+                    `Successfully created ${totalCount} reel${totalCount > 1 ? 's' : ''}. You can now download or publish them.`,
+                    'success',
+                    6000
+                );
+                showStatus('✅ Reels generated successfully!', 'success');
+                preview.style.display = 'block';
+                
+            } catch (error) {
+                hideLoading();
+                showToast(
+                    'Generation Failed',
+                    error.message,
+                    'error'
+                );
+                showStatus('❌ Error: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Publishing functions
+        function publishReel(brand) {
+            currentPublishBrand = brand;
+            document.getElementById('publishModal').style.display = 'flex';
+        }
+        
+        function closePublishModal() {
+            document.getElementById('publishModal').style.display = 'none';
+            currentPublishBrand = null;
+        }
+        
+        async function confirmPublish() {
+            if (!currentPublishBrand || !currentReels[currentPublishBrand]) {
+                showStatus('No reel to publish', 'error');
+                closePublishModal();
+                return;
+            }
+            
+            const platforms = [];
+            if (document.getElementById('publishInstagram').checked) platforms.push('instagram');
+            if (document.getElementById('publishFacebook').checked) platforms.push('facebook');
+            
+            if (platforms.length === 0) {
+                alert('Please select at least one platform');
+                return;
+            }
+            
+            const scheduleDate = document.getElementById('scheduleDate').value;
+            const scheduleTime = document.getElementById('scheduleTime').value;
+            const caption = document.getElementById('publishCaption').value;
+            
+            const requestData = {
+                reel_id: currentReels[currentPublishBrand],
+                caption: caption,
+                platforms: platforms
+            };
+            
+            if (scheduleDate && scheduleTime) {
+                requestData.schedule_date = scheduleDate;
+                requestData.schedule_time = scheduleTime;
+            }
+            
+            try {
+                closePublishModal();
+                
+                const isScheduled = scheduleDate && scheduleTime;
+                const platformText = platforms.join(' & ');
+                
+                if (isScheduled) {
+                    showLoading(
+                        'Scheduling Reel',
+                        `Setting up ${platformText} post for ${scheduleDate} at ${scheduleTime}...`
+                    );
+                } else {
+                    showLoading(
+                        'Publishing Reel',
+                        `Uploading to ${platformText}... This may take a minute.`
+                    );
+                }
+                
+                const response = await fetch('/reels/publish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                hideLoading();
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to publish reel');
+                }
+                
+                const result = await response.json();
+                
+                if (result.status === 'scheduled') {
+                    const datetime = new Date(`${scheduleDate}T${scheduleTime}`);
+                    const formattedDate = datetime.toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    });
+                    const formattedTime = datetime.toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    
+                    showToast(
+                        'Reel Scheduled Successfully!',
+                        `Your reel will be published to ${platformText} on ${formattedDate} at ${formattedTime}`,
+                        'success',
+                        8000
+                    );
+                    showStatus(`✅ Reel scheduled for ${formattedDate} at ${formattedTime}`, 'success');
+                    
+                } else if (result.status === 'published') {
+                    const published = [];
+                    const failed = [];
+                    
+                    if (result.results.instagram) {
+                        if (result.results.instagram.success) {
+                            published.push('Instagram');
+                        } else {
+                            failed.push(`Instagram: ${result.results.instagram.error || 'Unknown error'}`);
+                        }
+                    }
+                    
+                    if (result.results.facebook) {
+                        if (result.results.facebook.success) {
+                            published.push('Facebook');
+                        } else {
+                            failed.push(`Facebook: ${result.results.facebook.error || 'Unknown error'}`);
+                        }
+                    }
+                    
+                    if (published.length > 0) {
+                        showToast(
+                            'Reel Published Successfully!',
+                            `Your reel is now live on ${published.join(' and ')}! 🎉`,
+                            'success',
+                            8000
+                        );
+                        showStatus(`✅ Published to: ${published.join(', ')}`, 'success');
+                    }
+                    
+                    if (failed.length > 0) {
+                        showToast(
+                            'Partial Publish',
+                            failed.join('\n'),
+                            'warning',
+                            10000
+                        );
+                    }
+                    
+                } else {
+                    showToast(
+                        'Publish Status Unknown',
+                        'The reel may have been published. Check your social media accounts and console for details.',
+                        'warning',
+                        8000
+                    );
+                    console.log('Publish result:', result);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showToast(
+                    'Publish Failed',
+                    error.message,
+                    'error',
+                    8000
+                );
+                showStatus('❌ Publish error: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
