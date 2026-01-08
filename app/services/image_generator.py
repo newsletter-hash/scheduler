@@ -233,24 +233,30 @@ class ImageGenerator:
             last_line = lines[-1]
             middle_lines = lines[:-1]
             
-            # Shuffle middle lines with a fixed seed based on title for consistency
-            random.seed(hash(title))
+            # Check if original content has numbered lists
+            has_numbers = any(re.match(r'^\d+\.\s', line.strip()) for line in lines)
+            
+            # Shuffle middle lines (truly random, not seeded)
             shuffled_middle = middle_lines.copy()
             random.shuffle(shuffled_middle)
             
-            # If lines have numbers (1., 2., etc.), strip them and renumber after shuffling
-            renumbered_middle = []
-            for i, line in enumerate(shuffled_middle, 1):
-                # Remove any existing number prefix (e.g., "1. ", "2. ")
-                line_without_number = re.sub(r'^\d+\.\s*', '', line.strip())
-                # Add new sequential number
-                renumbered_middle.append(f"{i}. {line_without_number}")
-            
-            # Renumber the last line
-            last_line_without_number = re.sub(r'^\d+\.\s*', '', last_line.strip())
-            renumbered_last = f"{len(renumbered_middle) + 1}. {last_line_without_number}"
-            
-            lines = renumbered_middle + [renumbered_last]
+            if has_numbers:
+                # If original had numbers, renumber after shuffling
+                renumbered_middle = []
+                for i, line in enumerate(shuffled_middle, 1):
+                    # Remove any existing number prefix (e.g., "1. ", "2. ")
+                    line_without_number = re.sub(r'^\d+\.\s*', '', line.strip())
+                    # Add new sequential number
+                    renumbered_middle.append(f"{i}. {line_without_number}")
+                
+                # Renumber the last line
+                last_line_without_number = re.sub(r'^\d+\.\s*', '', last_line.strip())
+                renumbered_last = f"{len(renumbered_middle) + 1}. {last_line_without_number}"
+                
+                lines = renumbered_middle + [renumbered_last]
+            else:
+                # If original had no numbers, just shuffle without adding numbers
+                lines = shuffled_middle + [last_line]
         
         # Find optimal title font size (start at 56, reduce until fits in 2 lines)
         title_font_size = 56
