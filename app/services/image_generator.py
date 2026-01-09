@@ -70,21 +70,42 @@ class ImageGenerator:
         if variant == "dark":
             ai_generator = AIBackgroundGenerator()
             self._ai_background = ai_generator.generate_background(self.brand_name, self.ai_prompt)
+            # Dark mode: White text for title, brand-specific highlight colors
+            if brand_name == "gymcollege":
+                self.brand_config.content_title_color = (255, 255, 255)
+                self.brand_config.content_highlight_color = (0, 74, 173, 255)  # #004aad
+            elif brand_name == "healthycollege":
+                self.brand_config.content_title_color = (255, 255, 255)
+                self.brand_config.content_highlight_color = (0, 104, 55, 255)  # #006837
+            elif brand_name == "vitalitycollege":
+                self.brand_config.content_title_color = (255, 255, 255)
+                self.brand_config.content_highlight_color = (192, 86, 159, 255)  # #c0569f
+            elif brand_name == "longevitycollege":
+                self.brand_config.content_title_color = (255, 255, 255)
+                self.brand_config.content_highlight_color = (190, 127, 9, 255)  # #be7f09
         
         # Brand-specific color overrides for light mode
-        if variant == "light":
+        elif variant == "light":
             if brand_name == "gymcollege":
-                # Gymcollege: Dark blue #00435c for thumbnail title and blue highlight for content title
-                self.brand_config.thumbnail_text_color = (0, 67, 92)  # #00435c - Dark azure blue
+                # Gymcollege: Dark blue #00435c for thumbnail title, black text + blue bg for content
+                self.brand_config.thumbnail_text_color = (0, 67, 92)  # #00435c
+                self.brand_config.content_title_color = (0, 0, 0)  # Black
                 self.brand_config.content_highlight_color = (200, 234, 246, 255)  # #c8eaf6
             elif brand_name == "healthycollege":
-                # Healthycollege: Green highlight for content title, green thumbnail text
-                self.brand_config.content_highlight_color = (209, 246, 200, 255)  # #d1f6c8
+                # Healthycollege: Green thumbnail, white text + green bg for content
                 self.brand_config.thumbnail_text_color = (0, 100, 0)  # #006400
+                self.brand_config.content_title_color = (255, 255, 255)  # White
+                self.brand_config.content_highlight_color = (0, 104, 55, 255)  # #006837
             elif brand_name == "vitalitycollege":
-                # Vitalitycollege: Rose tones for both thumbnail and content
-                self.brand_config.thumbnail_text_color = (92, 42, 60)  # #5c2a3c
-                self.brand_config.content_highlight_color = (225, 190, 205, 255)  # #e1becd
+                # Vitalitycollege: Rose thumbnail, white text + rose bg for content
+                self.brand_config.thumbnail_text_color = (192, 86, 159)  # #c0569f
+                self.brand_config.content_title_color = (255, 255, 255)  # White
+                self.brand_config.content_highlight_color = (192, 86, 159, 255)  # #c0569f
+            elif brand_name == "longevitycollege":
+                # Longevitycollege: Amber thumbnail, white text + amber bg for content
+                self.brand_config.thumbnail_text_color = (190, 127, 9)  # #be7f09
+                self.brand_config.content_title_color = (255, 255, 255)  # White
+                self.brand_config.content_highlight_color = (190, 127, 9, 255)  # #be7f09
     
     def generate_thumbnail(
         self,
@@ -156,9 +177,9 @@ class ImageGenerator:
             # Try to load brand logo, fallback to text
             if self.brand_name == "gymcollege":
                 logo_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "dark mode" / "template_thumb.png"
-            elif self.brand_name == "vitalitycollege":
+            elif self.brand_name in ["vitalitycollege", "healthycollege", "longevitycollege"]:
                 logo_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "darkmode" / "template_thumb.png"
-            else:  # healthycollege
+            else:
                 logo_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "darkmode" / "template_thumb.png"
             
             if logo_path.exists():
@@ -174,7 +195,8 @@ class ImageGenerator:
                 brand_mapping = {
                     "gymcollege": "THE GYM COLLEGE",
                     "healthycollege": "HEALTHY COLLEGE", 
-                    "vitalitycollege": "VITALITY COLLEGE"
+                    "vitalitycollege": "VITALITY COLLEGE",
+                    "longevitycollege": "LONGEVITY COLLEGE"
                 }
                 brand_text = brand_mapping.get(self.brand_name, "THE GYM COLLEGE")
                 brand_font = get_brand_font(BRAND_FONT_SIZE)

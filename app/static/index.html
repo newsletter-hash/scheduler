@@ -626,6 +626,9 @@
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
                             <input type="checkbox" name="brand" value="vitalitycollege" checked> Vitality College
                         </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" name="brand" value="longevitycollege" checked> Longevity College
+                        </label>
                     </div>
                     <div class="help-text">Each brand has its own independent schedule</div>
                 </div>
@@ -643,6 +646,11 @@
                 <div class="form-group" id="captionVitalitycollegeGroup" style="display: none;">
                     <label for="captionVitalitycollege">Caption - Vitality College</label>
                     <textarea id="captionVitalitycollege" name="captionVitalitycollege" rows="3" placeholder="Enter caption for Vitality College..."></textarea>
+                </div>
+                
+                <div class="form-group" id="captionLongevitycollegeGroup" style="display: none;">
+                    <label for="captionLongevitycollege">Caption - Longevity College</label>
+                    <textarea id="captionLongevitycollege" name="captionLongevitycollege" rows="3" placeholder="Enter caption for Longevity College..."></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -717,7 +725,7 @@ Chicken — Let it rest after cooking" required></textarea>
                 
                 <!-- Vitality College Preview -->
                 <div id="vitalitycollegePreview" style="display: none; margin-bottom: 40px;">
-                    <h3 style="color: #b85578; margin-bottom: 15px;">Vitality College</h3>
+                    <h3 style="color: #c0569f; margin-bottom: 15px;">Vitality College</h3>
                     <div class="preview-grid">
                         <div class="preview-item">
                             <img id="thumbnailImgvitalitycollege" alt="Thumbnail">
@@ -733,6 +741,27 @@ Chicken — Let it rest after cooking" required></textarea>
                     <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
                         <button onclick="downloadReel('vitalitycollege')">Download</button>
                         <button onclick="openScheduleModal('vitalitycollege')" style="background: #10b981;">Schedule</button>
+                    </div>
+                </div>
+                
+                <!-- Longevity College Preview -->
+                <div id="longevitycollegePreview" style="display: none; margin-bottom: 40px;">
+                    <h3 style="color: #be7f09; margin-bottom: 15px;">Longevity College</h3>
+                    <div class="preview-grid">
+                        <div class="preview-item">
+                            <img id="thumbnailImglongevitycollege" alt="Thumbnail">
+                            <p>Thumbnail</p>
+                        </div>
+                        <div class="preview-item">
+                            <video id="reelVideolongevitycollege" controls style="width: 100%; border-radius: 8px;">
+                                <source id="videoSourcelongevitycollege" type="video/mp4">
+                            </video>
+                            <p>Reel Video</p>
+                        </div>
+                    </div>
+                    <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <button onclick="downloadReel('longevitycollege')">Download</button>
+                        <button onclick="openScheduleModal('longevitycollege')" style="background: #10b981;">Schedule</button>
                     </div>
                 </div>
             </div>
@@ -820,9 +849,11 @@ Chicken — Let it rest after cooking" required></textarea>
             const gymChecked = document.querySelector('input[name="brand"][value="gymcollege"]').checked;
             const healthyChecked = document.querySelector('input[name="brand"][value="healthycollege"]').checked;
             const vitalityChecked = document.querySelector('input[name="brand"][value="vitalitycollege"]').checked;
+            const longevityChecked = document.querySelector('input[name="brand"][value="longevitycollege"]').checked;
             document.getElementById('captionGymcollegeGroup').style.display = gymChecked ? 'block' : 'none';
             document.getElementById('captionHealthycollegeGroup').style.display = healthyChecked ? 'block' : 'none';
             document.getElementById('captionVitalitycollegeGroup').style.display = vitalityChecked ? 'block' : 'none';
+            document.getElementById('captionLongevitycollegeGroup').style.display = longevityChecked ? 'block' : 'none';
         }
         brandCheckboxes.forEach(cb => cb.addEventListener('change', updateCaptionVisibility));
         updateCaptionVisibility();
@@ -947,7 +978,8 @@ Chicken — Let it rest after cooking" required></textarea>
             const brandNames = {
                 'gymcollege': 'Gym College',
                 'healthycollege': 'Healthy College',
-                'vitalitycollege': 'Vitality College'
+                'vitalitycollege': 'Vitality College',
+                'longevitycollege': 'Longevity College'
             };
             return brandNames[brand] || brand;
         }
@@ -1219,6 +1251,7 @@ Chicken — Let it rest after cooking" required></textarea>
             document.getElementById('gymcollegePreview').style.display = 'none';
             document.getElementById('healthycollegePreview').style.display = 'none';
             document.getElementById('vitalitycollegePreview').style.display = 'none';
+            document.getElementById('longevitycollegePreview').style.display = 'none';
             document.getElementById('scheduleAllSection').style.display = 'none';
             currentReels = {};
             

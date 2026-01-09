@@ -1046,20 +1046,23 @@
                 const brandLabels = {
                     'gymcollege': 'GC',
                     'healthycollege': 'HC',
-                    'vitalitycollege': 'VC'
+                    'vitalitycollege': 'VC',
+                    'longevitycollege': 'LC'
                 };
                 brandLabel.textContent = brandLabels[brand] || 'UN';
                 const brandTitles = {
                     'gymcollege': 'The Gym College',
                     'healthycollege': 'The Healthy College',
-                    'vitalitycollege': 'Vitality College'
+                    'vitalitycollege': 'Vitality College',
+                    'longevitycollege': 'Longevity College'
                 };
                 brandLabel.title = brandTitles[brand] || 'Unknown Brand';
                 brandLabel.style.cssText = `
                 const brandColors = {
                     'gymcollege': '#00435c',
-                    'healthycollege': '#8B4513',
-                    'vitalitycollege': '#b85578'
+                    'healthycollege': '#006400',
+                    'vitalitycollege': '#c0569f',
+                    'longevitycollege': '#be7f09'
                 };
                     background: ${brandColors[brand] || '#666'};
                     color: white;
