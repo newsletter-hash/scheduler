@@ -95,6 +95,12 @@ async def scheduled_page():
     return FileResponse(scheduled_file)
 
 
+@app.get("/health", tags=["health"])
+async def health_check():
+    """Simple health check endpoint for Railway."""
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
 @app.on_event("startup")
 async def startup_event():
     """Run startup tasks."""
