@@ -111,8 +111,8 @@ class ImageGenerator:
             # Dark mode: use cached AI background with overlay
             image = self._ai_background.copy()
             
-            # Apply 45% dark overlay for thumbnail
-            overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, int(255 * 0.45)))
+            # Apply 50% dark overlay for thumbnail (5% darker for better white text visibility)
+            overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, int(255 * 0.50)))
             image = image.convert('RGBA')
             image = Image.alpha_composite(image, overlay)
             image = image.convert('RGB')
@@ -136,12 +136,8 @@ class ImageGenerator:
         
         title_y = (self.height - title_height) // 2
         
-        # Draw title lines with brand-specific colors
-        # Gym College: #00435c, Healthy College: #006400
-        if self.variant == "dark":
-            text_color = (0, 67, 92) if self.brand_name == "gymcollege" else (0, 100, 0)  # #00435c or #006400
-        else:
-            text_color = self.brand_config.thumbnail_text_color
+        # Draw title lines (white text for dark mode, brand color for light mode)
+        text_color = (255, 255, 255) if self.variant == "dark" else self.brand_config.thumbnail_text_color
         
         for line in title_lines:
             line_width, line_height = get_text_dimensions(line, title_font)
