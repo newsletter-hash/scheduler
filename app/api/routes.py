@@ -54,8 +54,10 @@ def get_brand_config_from_name(brand_name: str) -> Optional[BrandConfig]:
     brand_mapping = {
         "gymcollege": BrandType.THE_GYM_COLLEGE,
         "healthycollege": BrandType.WELLNESS_LIFE,
+        "vitalitycollege": BrandType.VITALITY_COLLEGE,
         "the_gym_college": BrandType.THE_GYM_COLLEGE,
         "wellness_life": BrandType.WELLNESS_LIFE,
+        "vitality_college": BrandType.VITALITY_COLLEGE,
     }
     brand_type = brand_mapping.get(brand_name.lower())
     if brand_type:
@@ -270,9 +272,11 @@ async def generate_reel(request: SimpleReelRequest):
         brand_mapping = {
             "the_gym_college": BrandType.THE_GYM_COLLEGE,
             "gymcollege": BrandType.THE_GYM_COLLEGE,
-            "healthycollege": BrandType.THE_GYM_COLLEGE,  # TODO: Add new brand type
+            "healthycollege": BrandType.WELLNESS_LIFE,
+            "vitalitycollege": BrandType.VITALITY_COLLEGE,
             "fitness_pro": BrandType.FITNESS_PRO,
             "wellness_life": BrandType.WELLNESS_LIFE,
+            "vitality_college": BrandType.VITALITY_COLLEGE,
         }
         brand = brand_mapping.get(request.brand.lower(), BrandType.THE_GYM_COLLEGE)
         

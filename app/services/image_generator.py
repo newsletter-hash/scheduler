@@ -55,7 +55,7 @@ class ImageGenerator:
         Args:
             brand_type: The brand type to use for styling
             variant: Variant type ("light" or "dark")
-            brand_name: Brand name ("gymcollege" or "healthycollege")
+            brand_name: Brand name ("gymcollege", "healthycollege", or "vitalitycollege")
             ai_prompt: Custom AI prompt for dark mode backgrounds (optional)
         """
         self.brand_config = get_brand_config(brand_type)
@@ -81,6 +81,10 @@ class ImageGenerator:
                 # Healthycollege: Green highlight for content title, green thumbnail text
                 self.brand_config.content_highlight_color = (209, 246, 200, 255)  # #d1f6c8
                 self.brand_config.thumbnail_text_color = (0, 100, 0)  # #006400
+            elif brand_name == "vitalitycollege":
+                # Vitalitycollege: Rose tones for both thumbnail and content
+                self.brand_config.thumbnail_text_color = (92, 42, 60)  # #5c2a3c
+                self.brand_config.content_highlight_color = (225, 190, 205, 255)  # #e1becd
     
     def generate_thumbnail(
         self,
@@ -150,10 +154,7 @@ class ImageGenerator:
             brand_y = title_y + 254
             
             # Try to load brand logo, fallback to text
-            if self.brand_name == "gymcollege":
-                logo_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "dark mode" / "template_thumb.png"
-            else:  # healthycollege
-                logo_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "darkmode" / "template_thumb.png"
+            if self.brand_name == \"gymcollege\":\n                logo_path = Path(__file__).resolve().parent.parent.parent / \"assets\" / \"templates\" / self.brand_name / \"dark mode\" / \"template_thumb.png\"\n            elif self.brand_name == \"vitalitycollege\":\n                logo_path = Path(__file__).resolve().parent.parent.parent / \"assets\" / \"templates\" / self.brand_name / \"darkmode\" / \"template_thumb.png\"\n            else:  # healthycollege\n                logo_path = Path(__file__).resolve().parent.parent.parent / \"assets\" / \"templates\" / self.brand_name / \"darkmode\" / \"template_thumb.png\"
             
             if logo_path.exists():
                 logo = Image.open(logo_path)
@@ -165,7 +166,12 @@ class ImageGenerator:
                 image.paste(logo, (logo_x, brand_y), logo if logo.mode == 'RGBA' else None)
             else:
                 # Fallback: draw brand text
-                brand_text = "THE GYM COLLEGE" if self.brand_name == "gymcollege" else "HEALTHY COLLEGE"
+                brand_mapping = {
+                    "gymcollege": "THE GYM COLLEGE",
+                    "healthycollege": "HEALTHY COLLEGE", 
+                    "vitalitycollege": "VITALITY COLLEGE"
+                }
+                brand_text = brand_mapping.get(self.brand_name, "THE GYM COLLEGE")
                 brand_font = get_brand_font(BRAND_FONT_SIZE)
                 brand_width, _ = get_text_dimensions(brand_text, brand_font)
                 brand_x = (self.width - brand_width) // 2

@@ -623,6 +623,9 @@
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
                             <input type="checkbox" name="brand" value="healthycollege" checked> Healthy College
                         </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" name="brand" value="vitalitycollege" checked> Vitality College
+                        </label>
                     </div>
                     <div class="help-text">Each brand has its own independent schedule</div>
                 </div>
@@ -635,6 +638,11 @@
                 <div class="form-group" id="captionHealthycollegeGroup" style="display: none;">
                     <label for="captionHealthycollege">Caption - Healthy College</label>
                     <textarea id="captionHealthycollege" name="captionHealthycollege" rows="3" placeholder="Enter caption for Healthy College..."></textarea>
+                </div>
+                
+                <div class="form-group" id="captionVitalitycollegeGroup" style="display: none;">
+                    <label for="captionVitalitycollege">Caption - Vitality College</label>
+                    <textarea id="captionVitalitycollege" name="captionVitalitycollege" rows="3" placeholder="Enter caption for Vitality College..."></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -704,6 +712,27 @@ Chicken — Let it rest after cooking" required></textarea>
                     <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
                         <button onclick="downloadReel('healthycollege')">Download</button>
                         <button onclick="openScheduleModal('healthycollege')" style="background: #10b981;">Schedule</button>
+                    </div>
+                </div>
+                
+                <!-- Vitality College Preview -->
+                <div id="vitalitycollegePreview" style="display: none; margin-bottom: 40px;">
+                    <h3 style="color: #b85578; margin-bottom: 15px;">Vitality College</h3>
+                    <div class="preview-grid">
+                        <div class="preview-item">
+                            <img id="thumbnailImgvitalitycollege" alt="Thumbnail">
+                            <p>Thumbnail</p>
+                        </div>
+                        <div class="preview-item">
+                            <video id="reelVideovitalitycollege" controls style="width: 100%; border-radius: 8px;">
+                                <source id="videoSourcevitalitycollege" type="video/mp4">
+                            </video>
+                            <p>Reel Video</p>
+                        </div>
+                    </div>
+                    <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <button onclick="downloadReel('vitalitycollege')">Download</button>
+                        <button onclick="openScheduleModal('vitalitycollege')" style="background: #10b981;">Schedule</button>
                     </div>
                 </div>
             </div>
@@ -790,8 +819,10 @@ Chicken — Let it rest after cooking" required></textarea>
         function updateCaptionVisibility() {
             const gymChecked = document.querySelector('input[name="brand"][value="gymcollege"]').checked;
             const healthyChecked = document.querySelector('input[name="brand"][value="healthycollege"]').checked;
+            const vitalityChecked = document.querySelector('input[name="brand"][value="vitalitycollege"]').checked;
             document.getElementById('captionGymcollegeGroup').style.display = gymChecked ? 'block' : 'none';
             document.getElementById('captionHealthycollegeGroup').style.display = healthyChecked ? 'block' : 'none';
+            document.getElementById('captionVitalitycollegeGroup').style.display = vitalityChecked ? 'block' : 'none';
         }
         brandCheckboxes.forEach(cb => cb.addEventListener('change', updateCaptionVisibility));
         updateCaptionVisibility();
@@ -911,6 +942,16 @@ Chicken — Let it rest after cooking" required></textarea>
         }
         
         // Open schedule modal
+        // Helper function to get brand display name
+        function getBrandName(brand) {
+            const brandNames = {
+                'gymcollege': 'Gym College',
+                'healthycollege': 'Healthy College',
+                'vitalitycollege': 'Vitality College'
+            };
+            return brandNames[brand] || brand;
+        }
+        
         async function openScheduleModal(brand) {
             if (!currentReels[brand]) {
                 showToast('Error', 'No reel to schedule', 'error');
@@ -918,7 +959,7 @@ Chicken — Let it rest after cooking" required></textarea>
             }
             
             currentScheduleBrand = brand;
-            const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+            const brandName = getBrandName(brand);
             document.getElementById('scheduleModalTitle').textContent = `Schedule ${brandName}`;
             
             setScheduleMode('auto');
@@ -1030,7 +1071,7 @@ Chicken — Let it rest after cooking" required></textarea>
                 const formattedDate = datetime.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
                 const formattedTime = datetime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                 
-                const brandName = currentScheduleBrand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+                const brandName = getBrandName(currentScheduleBrand);
                 showToast('Scheduled!', `${brandName} scheduled for ${formattedDate} at ${formattedTime}`, 'success', 8000);
                 
                 await fetchNextSlots();
@@ -1057,7 +1098,7 @@ Chicken — Let it rest after cooking" required></textarea>
                 const captionInput = document.getElementById(`caption${brand.charAt(0).toUpperCase() + brand.slice(1)}`);
                 const caption = captionInput ? captionInput.value.trim() : '';
                 if (!caption) {
-                    const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+                    const brandName = getBrandName(brand);
                     showToast('Missing Caption', `Please enter a caption for ${brandName}`, 'error');
                     return;
                 }
@@ -1177,6 +1218,7 @@ Chicken — Let it rest after cooking" required></textarea>
             preview.style.display = 'none';
             document.getElementById('gymcollegePreview').style.display = 'none';
             document.getElementById('healthycollegePreview').style.display = 'none';
+            document.getElementById('vitalitycollegePreview').style.display = 'none';
             document.getElementById('scheduleAllSection').style.display = 'none';
             currentReels = {};
             
@@ -1186,7 +1228,7 @@ Chicken — Let it rest after cooking" required></textarea>
             try {
                 for (let i = 0; i < brands.length; i++) {
                     const brand = brands[i];
-                    const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+                    const brandName = getBrandName(brand);
                     
                     showLoading(`Generating ${brandName}`, `Creating reel ${i + 1} of ${brands.length}...`);
                     

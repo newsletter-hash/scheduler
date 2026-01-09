@@ -12,6 +12,7 @@ class BrandType(str, Enum):
     THE_GYM_COLLEGE = "THE_GYM_COLLEGE"
     FITNESS_PRO = "FITNESS_PRO"
     WELLNESS_LIFE = "WELLNESS_LIFE"
+    VITALITY_COLLEGE = "VITALITY_COLLEGE"
 
 
 @dataclass
@@ -82,6 +83,22 @@ BRAND_CONFIGS: Dict[BrandType, BrandConfig] = {
         instagram_business_account_id="17841479849607158",  # @thehealthycollege
         facebook_page_id="944977965368075",  # Healthy College Facebook Page
         meta_access_token=os.getenv("META_ACCESS_TOKEN"),  # Same token for both brands
+    ),
+    BrandType.VITALITY_COLLEGE: BrandConfig(
+        name="VITALITY_COLLEGE",
+        display_name="Vitality College",
+        primary_color=(248, 240, 245),  # Light rose background #f8f0f5
+        secondary_color=(184, 85, 120),  # Rose primary #b85578
+        text_color=(92, 42, 60),  # Deep rose text #5c2a3c
+        highlight_color=(225, 190, 205, 255),  # Rose highlight #e1becd
+        logo_filename="vitality_college_logo.png",
+        thumbnail_bg_color=(248, 240, 245),  # #f8f0f5
+        thumbnail_text_color=(92, 42, 60),  # #5c2a3c
+        content_title_color=(92, 42, 60),  # #5c2a3c
+        content_highlight_color=(225, 190, 205, 255),  # #e1becd
+        instagram_business_account_id=os.getenv("VITALITYCOLLEGE_INSTAGRAM_ID"),
+        facebook_page_id=os.getenv("VITALITYCOLLEGE_FACEBOOK_PAGE_ID"),
+        meta_access_token=os.getenv("VITALITYCOLLEGE_META_TOKEN") or os.getenv("META_ACCESS_TOKEN"),
     ),
 }
 
