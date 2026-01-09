@@ -1,14 +1,26 @@
 """
 Brand color configurations for thumbnails and content in light/dark modes.
-Easy to edit and test - modify the RGB values below for each brand.
+Easy to edit and test - modify the HEX color values below for each brand.
 """
 from typing import Dict, Tuple
 from dataclasses import dataclass
 
 
+def hex_to_rgb(hex_color: str) -> Tuple[int, int, int]:
+    """Convert hex color to RGB tuple."""
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+
+def hex_to_rgba(hex_color: str, alpha: int = 255) -> Tuple[int, int, int, int]:
+    """Convert hex color to RGBA tuple."""
+    rgb = hex_to_rgb(hex_color)
+    return rgb + (alpha,)
+
+
 @dataclass
 class BrandModeColors:
-    """Colors for a specific brand in a specific mode."""
+    """Colors for a specific brand in a specific mode (stored as RGB/RGBA tuples internally)."""
     # Thumbnail colors
     thumbnail_text_color: Tuple[int, int, int]  # RGB
     
@@ -25,7 +37,7 @@ class BrandColorConfig:
 
 
 # ============================================================================
-# BRAND COLOR CONFIGURATIONS
+# BRAND COLOR CONFIGURATIONS - EDIT HEX VALUES BELOW
 # ============================================================================
 
 BRAND_COLORS: Dict[str, BrandColorConfig] = {
@@ -36,19 +48,19 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
     "gymcollege": BrandColorConfig(
         light_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(0, 67, 92),  # #00435c (blue)
+            thumbnail_text_color=hex_to_rgb("#00435c"),  # Blue
             
             # Content
-            content_title_text_color=(0, 0, 0),  # Black
-            content_title_bg_color=(200, 234, 246, 255),  # #c8eaf6 (light blue)
+            content_title_text_color=hex_to_rgb("#000000"),  # Black
+            content_title_bg_color=hex_to_rgba("#c8eaf6"),  # Light blue
         ),
         dark_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(255, 255, 255),  # White (fixed for all dark modes)
+            thumbnail_text_color=hex_to_rgb("#ffffff"),  # White (fixed for all dark modes)
             
             # Content
-            content_title_text_color=(255, 255, 255),  # White
-            content_title_bg_color=(0, 74, 173, 255),  # #004aad (dark blue)
+            content_title_text_color=hex_to_rgb("#ffffff"),  # White
+            content_title_bg_color=hex_to_rgba("#004aad"),  # Dark blue
         ),
     ),
     
@@ -58,19 +70,19 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
     "healthycollege": BrandColorConfig(
         light_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(0, 100, 0),  # #006400 (green)
+            thumbnail_text_color=hex_to_rgb("#006400"),  # Green
             
             # Content
-            content_title_text_color=(0, 0, 0),  # Black
-            content_title_bg_color=(0, 104, 55, 255),  # #006837 (green)
+            content_title_text_color=hex_to_rgb("#000000"),  # Black
+            content_title_bg_color=hex_to_rgba("#006837"),  # Green
         ),
         dark_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(255, 255, 255),  # White (fixed for all dark modes)
+            thumbnail_text_color=hex_to_rgb("#ffffff"),  # White (fixed for all dark modes)
             
             # Content
-            content_title_text_color=(255, 255, 255),  # White
-            content_title_bg_color=(0, 100, 0, 255),  # #006400 (dark green)
+            content_title_text_color=hex_to_rgb("#ffffff"),  # White
+            content_title_bg_color=hex_to_rgba("#006400"),  # Dark green
         ),
     ),
     
@@ -80,19 +92,19 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
     "vitalitycollege": BrandColorConfig(
         light_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(192, 86, 159),  # #c0569f (rose)
+            thumbnail_text_color=hex_to_rgb("#c0569f"),  # Rose
             
             # Content
-            content_title_text_color=(255, 255, 255),  # White
-            content_title_bg_color=(192, 86, 159, 255),  # #c0569f (rose)
+            content_title_text_color=hex_to_rgb("#ffffff"),  # White
+            content_title_bg_color=hex_to_rgba("#c0569f"),  # Rose
         ),
         dark_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(255, 255, 255),  # White (fixed for all dark modes)
+            thumbnail_text_color=hex_to_rgb("#ffffff"),  # White (fixed for all dark modes)
             
             # Content
-            content_title_text_color=(255, 255, 255),  # White
-            content_title_bg_color=(192, 86, 159, 255),  # #c0569f (rose)
+            content_title_text_color=hex_to_rgb("#ffffff"),  # White
+            content_title_bg_color=hex_to_rgba("#c0569f"),  # Rose
         ),
     ),
     
@@ -102,19 +114,19 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
     "longevitycollege": BrandColorConfig(
         light_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(190, 127, 9),  # #be7f09 (amber)
+            thumbnail_text_color=hex_to_rgb("#be7f09"),  # Amber
             
             # Content
-            content_title_text_color=(0, 0, 0),  # Black
-            content_title_bg_color=(237, 186, 133, 255),  # #edba85 (light amber)
+            content_title_text_color=hex_to_rgb("#000000"),  # Black
+            content_title_bg_color=hex_to_rgba("#edba85"),  # Light amber
         ),
         dark_mode=BrandModeColors(
             # Thumbnail
-            thumbnail_text_color=(255, 255, 255),  # White (fixed for all dark modes)
+            thumbnail_text_color=hex_to_rgb("#ffffff"),  # White (fixed for all dark modes)
             
             # Content
-            content_title_text_color=(255, 255, 255),  # White
-            content_title_bg_color=(190, 127, 9, 255),  # #be7f09 (amber)
+            content_title_text_color=hex_to_rgb("#ffffff"),  # White
+            content_title_bg_color=hex_to_rgba("#be7f09"),  # Amber
         ),
     ),
 }
