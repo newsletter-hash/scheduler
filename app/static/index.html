@@ -599,13 +599,13 @@
                     <label>Variant</label>
                     <div style="display: flex; gap: 15px;">
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="variant" value="light" checked> ☀️ Light Mode
+                            <input type="radio" name="variant" value="light" checked> Light Mode
                         </label>
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="variant" value="dark"> 🌙 Dark Mode
+                            <input type="radio" name="variant" value="dark"> Dark Mode
                         </label>
                     </div>
-                    <div class="help-text">Light: 12AM, 8AM, 4PM slots | Dark: 4AM, 12PM, 8PM slots</div>
+                    <div class="help-text">Light slots: 12AM, 8AM, 4PM | Dark slots: 4AM, 12PM, 8PM</div>
                 </div>
                 
                 <div class="form-group" id="aiPromptGroup" style="display: none;">
@@ -618,13 +618,23 @@
                     <label>Brands</label>
                     <div style="display: flex; gap: 15px;">
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" name="brand" value="gymcollege" checked> 💪 Gym College
+                            <input type="checkbox" name="brand" value="gymcollege" checked> Gym College
                         </label>
                         <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" name="brand" value="healthycollege" checked> 🥗 Healthy College
+                            <input type="checkbox" name="brand" value="healthycollege" checked> Healthy College
                         </label>
                     </div>
                     <div class="help-text">Each brand has its own independent schedule</div>
+                </div>
+                
+                <div class="form-group" id="captionGymcollegeGroup" style="display: none;">
+                    <label for="captionGymcollege">Caption - Gym College</label>
+                    <textarea id="captionGymcollege" name="captionGymcollege" rows="3" placeholder="Enter caption for Gym College..."></textarea>
+                </div>
+                
+                <div class="form-group" id="captionHealthycollegeGroup" style="display: none;">
+                    <label for="captionHealthycollege">Caption - Healthy College</label>
+                    <textarea id="captionHealthycollege" name="captionHealthycollege" rows="3" placeholder="Enter caption for Healthy College..."></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -648,15 +658,16 @@ Chicken — Let it rest after cooking" required></textarea>
                 
                 <!-- Schedule All Section -->
                 <div class="schedule-all-section" id="scheduleAllSection">
-                    <h3>🚀 Quick Schedule All Brands</h3>
-                    <p>Auto-schedule all reels to their next available slots based on variant.</p>
-                    <button class="schedule-all-btn" onclick="scheduleAllBrands()">⚡ Schedule All to Next Slots</button>
+                    <h3>Quick Schedule All Brands</h3>
+                    <p>Auto-schedule all reels to their next available slots. Captions from above will be used.</p>
+                    <button class="schedule-all-btn" id="scheduleAllBtn" onclick="scheduleAllBrands()">Schedule All to Next Slots</button>
                     <div class="next-slots-preview" id="nextSlotsPreview"></div>
+                    <p id="scheduleAllStatus" style="margin-top: 10px; font-size: 13px; display: none;"></p>
                 </div>
                 
                 <!-- Gym College Preview -->
                 <div id="gymcollegePreview" style="display: none; margin-bottom: 40px;">
-                    <h3 style="color: #00435c; margin-bottom: 15px;">💪 Gym College</h3>
+                    <h3 style="color: #00435c; margin-bottom: 15px;">Gym College</h3>
                     <div class="preview-grid">
                         <div class="preview-item">
                             <img id="thumbnailImggymcollege" alt="Thumbnail">
@@ -670,15 +681,14 @@ Chicken — Let it rest after cooking" required></textarea>
                         </div>
                     </div>
                     <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                        <button onclick="downloadReel('gymcollege')">⬇️ Download</button>
-                        <button onclick="openScheduleModal('gymcollege')" style="background: #10b981;">📅 Schedule</button>
-                        <button onclick="publishNow('gymcollege')" style="background: #3b82f6;">📤 Publish Now</button>
+                        <button onclick="downloadReel('gymcollege')">Download</button>
+                        <button onclick="openScheduleModal('gymcollege')" style="background: #10b981;">Schedule</button>
                     </div>
                 </div>
                 
                 <!-- Healthy College Preview -->
                 <div id="healthycollegePreview" style="display: none; margin-bottom: 40px;">
-                    <h3 style="color: #006400; margin-bottom: 15px;">🥗 Healthy College</h3>
+                    <h3 style="color: #006400; margin-bottom: 15px;">Healthy College</h3>
                     <div class="preview-grid">
                         <div class="preview-item">
                             <img id="thumbnailImghealthycollege" alt="Thumbnail">
@@ -692,9 +702,8 @@ Chicken — Let it rest after cooking" required></textarea>
                         </div>
                     </div>
                     <div class="download-section" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                        <button onclick="downloadReel('healthycollege')">⬇️ Download</button>
-                        <button onclick="openScheduleModal('healthycollege')" style="background: #10b981;">📅 Schedule</button>
-                        <button onclick="publishNow('healthycollege')" style="background: #3b82f6;">📤 Publish Now</button>
+                        <button onclick="downloadReel('healthycollege')">Download</button>
+                        <button onclick="openScheduleModal('healthycollege')" style="background: #10b981;">Schedule</button>
                     </div>
                 </div>
             </div>
@@ -705,7 +714,7 @@ Chicken — Let it rest after cooking" required></textarea>
     <div class="modal" id="scheduleModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="scheduleModalTitle">📅 Schedule Reel</h3>
+                <h3 id="scheduleModalTitle">Schedule Reel</h3>
                 <button class="modal-close" onclick="closeScheduleModal()">×</button>
             </div>
             
@@ -726,17 +735,17 @@ Chicken — Let it rest after cooking" required></textarea>
                     <input type="time" id="scheduleTime" step="3600">
                 </div>
                 <div class="slot-rules">
-                    <strong>📌 Slot Rules:</strong>
-                    ☀️ Light Mode: 12:00 AM, 8:00 AM, 4:00 PM<br>
-                    🌙 Dark Mode: 4:00 AM, 12:00 PM, 8:00 PM
+                    <strong>Slot Rules:</strong>
+                    Light Mode: 12:00 AM, 8:00 AM, 4:00 PM<br>
+                    Dark Mode: 4:00 AM, 12:00 PM, 8:00 PM
                 </div>
             </div>
             
             <div class="modal-form-group">
                 <label>Platforms</label>
                 <div class="platform-checkboxes">
-                    <label><input type="checkbox" id="platformInstagram" checked> 📸 Instagram</label>
-                    <label><input type="checkbox" id="platformFacebook"> 📘 Facebook</label>
+                    <label><input type="checkbox" id="platformInstagram" checked> Instagram</label>
+                    <label><input type="checkbox" id="platformFacebook"> Facebook</label>
                 </div>
             </div>
             
@@ -747,7 +756,7 @@ Chicken — Let it rest after cooking" required></textarea>
             
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeScheduleModal()">Cancel</button>
-                <button class="btn-schedule" onclick="confirmSchedule()">📅 Schedule</button>
+                <button class="btn-schedule" onclick="confirmSchedule()">Schedule</button>
             </div>
         </div>
     </div>
@@ -775,6 +784,17 @@ Chicken — Let it rest after cooking" required></textarea>
                 aiPromptGroup.style.display = e.target.value === 'dark' ? 'block' : 'none';
             });
         });
+        
+        // Show/hide caption inputs based on brand selection
+        const brandCheckboxes = document.querySelectorAll('input[name="brand"]');
+        function updateCaptionVisibility() {
+            const gymChecked = document.querySelector('input[name="brand"][value="gymcollege"]').checked;
+            const healthyChecked = document.querySelector('input[name="brand"][value="healthycollege"]').checked;
+            document.getElementById('captionGymcollegeGroup').style.display = gymChecked ? 'block' : 'none';
+            document.getElementById('captionHealthycollegeGroup').style.display = healthyChecked ? 'block' : 'none';
+        }
+        brandCheckboxes.forEach(cb => cb.addEventListener('change', updateCaptionVisibility));
+        updateCaptionVisibility();
         
         // Toast system
         function showToast(title, message, type = 'info', duration = 5000) {
@@ -851,8 +871,8 @@ Chicken — Let it rest after cooking" required></textarea>
             for (const brand of brands) {
                 const slot = nextSlots[brand]?.[currentVariant];
                 if (slot) {
-                    const brandIcon = brand === 'gymcollege' ? '💪' : '🥗';
-                    chips += `<div class="slot-chip">${brandIcon} ${slot.human_readable}</div>`;
+                    const brandLabel = brand === 'gymcollege' ? 'GC' : 'HC';
+                    chips += `<div class="slot-chip">${brandLabel}: ${slot.human_readable}</div>`;
                 }
             }
             
@@ -899,7 +919,7 @@ Chicken — Let it rest after cooking" required></textarea>
             
             currentScheduleBrand = brand;
             const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
-            document.getElementById('scheduleModalTitle').textContent = `📅 Schedule ${brandName}`;
+            document.getElementById('scheduleModalTitle').textContent = `Schedule ${brandName}`;
             
             setScheduleMode('auto');
             
@@ -931,7 +951,7 @@ Chicken — Let it rest after cooking" required></textarea>
             
             if (slot) {
                 document.getElementById('nextSlotTime').textContent = slot.human_readable;
-                document.getElementById('nextSlotDate').textContent = `${currentVariant === 'light' ? '☀️ Light' : '🌙 Dark'} mode slot`;
+                document.getElementById('nextSlotDate').textContent = `${currentVariant === 'light' ? 'Light' : 'Dark'} mode slot`;
             } else {
                 document.getElementById('nextSlotTime').textContent = 'Unable to calculate';
                 document.getElementById('nextSlotDate').textContent = 'Please try manual mode';
@@ -1022,54 +1042,6 @@ Chicken — Let it rest after cooking" required></textarea>
             }
         }
         
-        // Publish immediately
-        async function publishNow(brand) {
-            if (!currentReels[brand]) {
-                showToast('Error', 'No reel to publish', 'error');
-                return;
-            }
-            
-            if (!confirm(`Publish ${brand === 'gymcollege' ? 'Gym College' : 'Healthy College'} reel immediately?`)) {
-                return;
-            }
-            
-            try {
-                showLoading('Publishing', 'Uploading to Instagram...');
-                
-                const response = await fetch('/reels/publish', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        reel_id: currentReels[brand],
-                        caption: 'CHANGE ME',
-                        platforms: ['instagram'],
-                        brand: brand,
-                        variant: currentVariant
-                    })
-                });
-                
-                hideLoading();
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to publish');
-                }
-                
-                const result = await response.json();
-                
-                if (result.results?.instagram?.success) {
-                    showToast('Published!', 'Your reel is now live on Instagram! 🎉', 'success', 8000);
-                } else {
-                    const errorMsg = result.results?.instagram?.error || 'Unknown error';
-                    showToast('Publish Issue', errorMsg, 'warning', 8000);
-                }
-                
-            } catch (error) {
-                hideLoading();
-                showToast('Publish Failed', error.message, 'error');
-            }
-        }
-        
         // Schedule all brands at once
         async function scheduleAllBrands() {
             const brands = Object.keys(currentReels);
@@ -1079,12 +1051,31 @@ Chicken — Let it rest after cooking" required></textarea>
                 return;
             }
             
+            // Validate captions exist for all brands
+            const captions = {};
+            for (const brand of brands) {
+                const captionInput = document.getElementById(`caption${brand.charAt(0).toUpperCase() + brand.slice(1)}`);
+                const caption = captionInput ? captionInput.value.trim() : '';
+                if (!caption) {
+                    const brandName = brand === 'gymcollege' ? 'Gym College' : 'Healthy College';
+                    showToast('Missing Caption', `Please enter a caption for ${brandName}`, 'error');
+                    return;
+                }
+                captions[brand] = caption;
+            }
+            
             await fetchNextSlots();
+            
+            // Disable button immediately to prevent double-clicks
+            const scheduleBtn = document.getElementById('scheduleAllBtn');
+            scheduleBtn.disabled = true;
+            scheduleBtn.textContent = 'Scheduling...';
             
             showLoading('Scheduling All', `Scheduling ${brands.length} reel(s)...`);
             
             let success = 0;
             let failed = 0;
+            const scheduled = [];
             
             for (const brand of brands) {
                 const slot = nextSlots[brand]?.[currentVariant];
@@ -1100,7 +1091,7 @@ Chicken — Let it rest after cooking" required></textarea>
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             reel_id: currentReels[brand],
-                            caption: 'CHANGE ME',
+                            caption: captions[brand],
                             platforms: ['instagram'],
                             schedule_date: slot.date,
                             schedule_time: slot.time,
@@ -1111,6 +1102,7 @@ Chicken — Let it rest after cooking" required></textarea>
                     
                     if (response.ok) {
                         success++;
+                        scheduled.push(brand);
                         await fetchNextSlots();
                     } else {
                         failed++;
@@ -1124,7 +1116,27 @@ Chicken — Let it rest after cooking" required></textarea>
             
             if (success > 0) {
                 showToast('Scheduled!', `${success} reel(s) scheduled successfully`, 'success', 6000);
+                
+                // Remove scheduled reels from currentReels to prevent re-scheduling
+                for (const brand of scheduled) {
+                    delete currentReels[brand];
+                }
+                
+                // Update button to show completed state
+                scheduleBtn.textContent = 'All Scheduled!';
+                scheduleBtn.style.background = '#10b981';
+                scheduleBtn.style.color = 'white';
+                
+                // Show status message
+                const statusEl = document.getElementById('scheduleAllStatus');
+                statusEl.style.display = 'block';
+                statusEl.textContent = `${success} reel(s) have been scheduled. Generate new reels to schedule more.`;
+                
                 await updateScheduleAllPreview();
+            } else {
+                // Re-enable button if all failed
+                scheduleBtn.disabled = false;
+                scheduleBtn.textContent = 'Schedule All to Next Slots';
             }
             
             if (failed > 0) {

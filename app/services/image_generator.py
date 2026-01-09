@@ -64,6 +64,12 @@ class ImageGenerator:
         self.variant = variant
         self.brand_name = brand_name
         self.ai_prompt = ai_prompt
+        self._ai_background = None  # Cache AI background for dark mode reuse
+        
+        # Pre-generate AI background for dark mode (one image for both thumbnail and content)
+        if variant == "dark":
+            ai_generator = AIBackgroundGenerator()
+            self._ai_background = ai_generator.generate_background(self.brand_name, self.ai_prompt)
         
         # Brand-specific color overrides for light mode
         if variant == "light":
@@ -102,11 +108,10 @@ class ImageGenerator:
             template_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "light mode" / "thumbnail_template.png"
             image = Image.open(template_path)
         else:
-            # Dark mode: generate AI background with overlay
-            ai_generator = AIBackgroundGenerator()
-            image = ai_generator.generate_background(self.brand_name, self.ai_prompt)
+            # Dark mode: use cached AI background with overlay
+            image = self._ai_background.copy()
             
-            # Apply 45% dark overlay
+            # Apply 45% dark overlay for thumbnail
             overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, int(255 * 0.45)))
             image = image.convert('RGBA')
             image = Image.alpha_composite(image, overlay)
@@ -200,12 +205,11 @@ class ImageGenerator:
             template_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "light mode" / "content_template.png"
             image = Image.open(template_path)
         else:
-            # Dark mode: generate AI background with overlay
-            ai_generator = AIBackgroundGenerator()
-            image = ai_generator.generate_background(self.brand_name, self.ai_prompt)
+            # Dark mode: use cached AI background with overlay
+            image = self._ai_background.copy()
             
-            # Apply 65% dark overlay
-            overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, int(255 * 0.65)))
+            # Apply 75% dark overlay for content (10% darker than before)
+            overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, int(255 * 0.75)))
             image = image.convert('RGBA')
             image = Image.alpha_composite(image, overlay)
             image = image.convert('RGB')
