@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Quick test script for title rendering without AI background generation.
-Tests the new title padding in dark mode.
+Quick test script for title rendering with manual line break support.
+Tests both auto-wrap and manual line break functionality.
 """
 import os
 import sys
@@ -20,15 +20,21 @@ from app.core.constants import (
 from app.utils.fonts import load_font
 from app.utils.text_layout import wrap_text, get_text_dimensions
 
-def test_title_rendering(variant="dark"):
-    """Test title rendering with new padding changes."""
+def test_title_rendering(variant="dark", use_manual_breaks=True):
+    """Test title rendering with new padding and manual line break support."""
     
-    # Test parameters - using manual line breaks for better aesthetics
-    title = "FOODS THAT DESTROY\nYOUR SLEEP QUALITY"  # Manual line break
+    # Test parameters - demonstrate manual line breaks for better aesthetics
+    if use_manual_breaks:
+        title = "FOODS THAT DESTROY\nYOUR SLEEP QUALITY"  # Manual line break for better aesthetics
+        title_label = "Manual Breaks"
+    else:
+        title = "FOODS THAT DESTROY YOUR SLEEP QUALITY"  # Auto-wrap
+        title_label = "Auto-Wrap"
+    
     brand_name = "gymcollege"
     
     print(f"🧪 Testing title: {title.replace(chr(10), ' | ')}")
-    print(f"🎨 Brand: {brand_name}, Variant: {variant}")
+    print(f"🎨 Brand: {brand_name}, Variant: {variant}, Mode: {title_label}")
     
     # Create background based on variant
     if variant == "light":
@@ -47,18 +53,29 @@ def test_title_rendering(variant="dark"):
     content_side_margin = 109
     max_content_width = REEL_WIDTH - (content_side_margin * 2)
     
-    # Find optimal title font size (start at 56, reduce until fits in 2 lines)
-    title_font_size = 56
-    title_font = None
-    title_wrapped = []
-    
-    while title_font_size >= 20:
-        title_font = load_font(FONT_BOLD, title_font_size)
-        title_wrapped = wrap_text(title_upper, title_font, max_content_width)
+    # Check for manual line breaks (\n) in title
+    if '\n' in title_upper:
+        # Use manual line breaks
+        title_wrapped = [line.strip() for line in title_upper.split('\n') if line.strip()]
+        print(f"📝 Using manual line breaks: {len(title_wrapped)} lines")
+        title_font_size = 56  # Use standard size for manual breaks
+    else:
+        # Find optimal title font size (auto-wrap)
+        title_font_size = 56
+        title_font = None
+        title_wrapped = []
         
-        if len(title_wrapped) <= 2:
-            break
-        title_font_size -= 1
+        while title_font_size >= 20:
+            title_font = load_font(FONT_BOLD, title_font_size)
+            title_wrapped = wrap_text(title_upper, title_font, max_content_width)
+            
+            if len(title_wrapped) <= 2:
+                break
+            title_font_size -= 1
+        print(f"📝 Using auto-wrap: {len(title_wrapped)} lines")
+    
+    # Load title font
+    title_font = load_font(FONT_BOLD, title_font_size)
     
     print(f"📏 Final font size: {title_font_size}px")
     print(f"📝 Title lines: {len(title_wrapped)}")
@@ -81,12 +98,9 @@ def test_title_rendering(variant="dark"):
     # Find max text width for stepped effect
     max_text_width = max(w for _, w, _, _ in metrics)
     
-    # NEW: Test both old and new padding
-    current_padding = H_PADDING  # Now 20px globally
-    
     print(f"\n🔄 Testing with current padding:")
     print(f"   Max text width: {max_text_width}px")
-    print(f"   Current padding (H_PADDING): {current_padding}px → Total bar width: {max_text_width + current_padding * 2}px")
+    print(f"   Current padding (H_PADDING): {H_PADDING}px → Total bar width: {max_text_width + H_PADDING * 2}px")
     
     # Use current padding
     max_bar_width = max_text_width + H_PADDING * 2
@@ -134,24 +148,36 @@ def test_title_rendering(variant="dark"):
         y += BAR_HEIGHT + BAR_GAP
     
     # Save test image
-    output_path = Path(__file__).parent / "output" / f"test_title_{variant}.png"
+    break_type = "manual" if use_manual_breaks else "auto"
+    output_path = Path(__file__).parent / "output" / f"test_title_{variant}_{break_type}.png"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(output_path, 'PNG', quality=95)
     
     print(f"\n✅ Test image saved: {output_path}")
-    print(f"🔍 Open the image to see the title in {variant} mode!")
+    print(f"🔍 Open the image to see the title in {variant} mode with {title_label}!")
     
     return output_path
 
 if __name__ == "__main__":
     try:
-        # Test both variants
-        print("=" * 60)
-        test_title_rendering("dark")
-        print("\n" + "=" * 60)
-        test_title_rendering("light")
-        print("\n" + "=" * 60)
-        print("✅ Both dark and light mode tests completed!")
+        # Test both variants and both break modes
+        print("=" * 70)
+        print("🎯 MANUAL LINE BREAKS (Better Aesthetics)")
+        print("=" * 70)
+        test_title_rendering("dark", use_manual_breaks=True)
+        print("\n" + "=" * 70)
+        test_title_rendering("light", use_manual_breaks=True)
+        
+        print("\n" + "=" * 70)
+        print("🤖 AUTO-WRAP (Original)")
+        print("=" * 70)
+        test_title_rendering("dark", use_manual_breaks=False)
+        print("\n" + "=" * 70)
+        test_title_rendering("light", use_manual_breaks=False)
+        
+        print("\n" + "=" * 70)
+        print("✅ All tests completed!")
+        print("📊 Compare manual vs auto-wrap versions to see the aesthetic improvement!")
     except Exception as e:
         print(f"❌ Error: {e}")
         sys.exit(1)
