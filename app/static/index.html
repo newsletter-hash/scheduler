@@ -867,20 +867,6 @@ Chicken — Let it rest after cooking" required></textarea>
             });
         });
         
-        // Show/hide caption inputs based on brand selection
-        const brandCheckboxes = document.querySelectorAll('input[name="brand"]');
-        function updateCaptionVisibility() {
-            const gymChecked = document.querySelector('input[name="brand"][value="gymcollege"]').checked;
-            const healthyChecked = document.querySelector('input[name="brand"][value="healthycollege"]').checked;
-            const vitalityChecked = document.querySelector('input[name="brand"][value="vitalitycollege"]').checked;
-            const longevityChecked = document.querySelector('input[name="brand"][value="longevitycollege"]').checked;
-            document.getElementById('captionGymcollegeGroup').style.display = gymChecked ? 'block' : 'none';
-            document.getElementById('captionHealthycollegeGroup').style.display = healthyChecked ? 'block' : 'none';
-            document.getElementById('captionVitalitycollegeGroup').style.display = vitalityChecked ? 'block' : 'none';
-            document.getElementById('captionLongevitycollegeGroup').style.display = longevityChecked ? 'block' : 'none';
-        }
-        brandCheckboxes.forEach(cb => cb.addEventListener('change', updateCaptionVisibility));
-        updateCaptionVisibility();
         
         // Toast system
         function showToast(title, message, type = 'info', duration = 5000) {
