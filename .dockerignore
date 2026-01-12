@@ -28,15 +28,19 @@ Thumbs.db
 # Environment
 .env
 .env.local
+.env.example
 
 # Git
 .git/
 .gitignore
 
-# Output (will be generated)
-output/videos/*
-output/thumbnails/*
-output/reels/*
+# Output directories (generated files - NEVER include in build)
+output/
+reels/
+assets/examples/
+
+# Database files
+*.db
 
 # Logs
 *.log
@@ -45,8 +49,12 @@ output/reels/*
 .pytest_cache/
 .coverage
 htmlcov/
+tests/
 
 # Documentation
 *.md
 !README.md
 docs/
+
+# Shell scripts (not needed in container)
+*.sh
