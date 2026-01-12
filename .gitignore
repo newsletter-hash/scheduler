@@ -24,14 +24,22 @@ env/
 .DS_Store
 Thumbs.db
 
-# Output (generated files)
-output/videos/*
-output/thumbnails/*
-output/reels/*
+# Output (generated files) - NEVER commit these
+output/videos/
+output/thumbnails/
+output/reels/
+output/schedules.db
+output/scheduled.json
+output/*.png
+output/*.json
+output/*.db
+
+# Example outputs (generated during testing)
 assets/examples/
 
 # Database
 *.db
+reels_history.db
 
 # Logs
 *.log
@@ -40,3 +48,4 @@ assets/examples/
 .pytest_cache/
 .coverage
 htmlcov/
+test_*.png
