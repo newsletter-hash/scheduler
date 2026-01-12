@@ -326,9 +326,8 @@ class ImageGenerator:
         
         # Find max text width for stepped effect
         max_text_width = max(w for _, w, _, _ in metrics)
-        # Reduce padding for tighter title background bars (especially in dark mode)
-        title_padding = 20 if self.variant == "dark" else H_PADDING  # Much tighter for dark mode
-        max_bar_width = max_text_width + title_padding * 2
+        # Use consistent padding for both light and dark mode now that H_PADDING is globally 20px
+        max_bar_width = max_text_width + H_PADDING * 2
         center_x = self.width // 2
         
         # Draw each title line with stepped background bars
@@ -360,6 +359,7 @@ class ImageGenerator:
                 + (BAR_HEIGHT - glyph_height) / 2
                 - glyph_top
                 + VERTICAL_CORRECTION
+                + 1.5  # Move text down 1.5px
             )
             
             draw.text((text_x, text_y), line, font=title_font, fill=title_text_color)
