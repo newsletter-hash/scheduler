@@ -28,7 +28,7 @@ from app.core.constants import (
     FONT_BOLD,
     FONT_REGULAR,
     FONT_CONTENT,
-    CONTENT_LETTER_SPACING,
+    CONTENT_LINE_SPACING,
 )
 from app.utils.fonts import (
     get_title_font,
@@ -51,8 +51,6 @@ from app.utils.text_formatting import (
     draw_mixed_text,
     parse_bold_text,
     wrap_text_with_bold,
-    draw_text_with_letter_spacing,
-    get_text_width_with_letter_spacing,
 )
 
 
@@ -213,7 +211,7 @@ class ImageGenerator:
         
         # Content font settings - Browallia New Bold at 49px
         content_font_size = CONTENT_FONT_SIZE  # 49px
-        line_spacing_multiplier = 1.0  # Default line spacing for Browallia New
+        line_spacing_multiplier = CONTENT_LINE_SPACING  # 0.78x line spacing
         title_content_padding = 90
         
         import random
@@ -384,28 +382,27 @@ class ImageGenerator:
         # Draw numbered content lines with **bold** markdown support
         text_color = (255, 255, 255) if self.variant == "dark" else (0, 0, 0)  # White for dark mode, black for light
         
-        # Calculate letter spacing (0.78x of default = 22% tighter)
-        # For 49px Browallia New, typical character width is ~20px, so -22% = ~-4px letter spacing
-        content_letter_spacing = int(content_font_size * CONTENT_LETTER_SPACING)  # -22% of font size
-        
         for i, line in enumerate(lines):
             # Parse the entire line for **bold** markdown
             line_segments = parse_bold_text(line)
             
-            # Calculate total width with letter spacing to see if it fits on one line
+            # Calculate total width to see if it fits on one line
             line_width = 0
             for segment_text, is_bold in line_segments:
                 font = content_bold_font if is_bold else content_font
-                line_width += get_text_width_with_letter_spacing(segment_text, font, content_letter_spacing)
+                bbox_seg = font.getbbox(segment_text)
+                line_width += bbox_seg[2] - bbox_seg[0]
             
             if line_width <= max_content_width:
-                # Fits on one line - draw with mixed fonts and letter spacing
+                # Fits on one line - draw with mixed fonts
                 x_pos = content_side_margin
                 for segment_text, is_bold in line_segments:
                     font = content_bold_font if is_bold else content_font
-                    x_pos = draw_text_with_letter_spacing(draw, x_pos, current_y, segment_text, font, text_color, content_letter_spacing)
+                    draw.text((x_pos, current_y), segment_text, font=font, fill=text_color)
+                    bbox_seg = font.getbbox(segment_text)
+                    x_pos += bbox_seg[2] - bbox_seg[0]
                 
-                # Get line height from first segment
+                # Get line height from first segment and apply line spacing multiplier
                 first_font = content_bold_font if line_segments[0][1] else content_font
                 bbox = first_font.getbbox("A")
                 line_height = bbox[3] - bbox[1]
@@ -419,14 +416,16 @@ class ImageGenerator:
                     max_content_width
                 )
                 
-                # Draw each wrapped line with mixed fonts and letter spacing
+                # Draw each wrapped line with mixed fonts
                 for wrapped_line_segments in wrapped_lines:
                     x_pos = content_side_margin
                     for segment_text, is_bold in wrapped_line_segments:
                         font = content_bold_font if is_bold else content_font
-                        x_pos = draw_text_with_letter_spacing(draw, x_pos, current_y, segment_text, font, text_color, content_letter_spacing)
+                        draw.text((x_pos, current_y), segment_text, font=font, fill=text_color)
+                        bbox_seg = font.getbbox(segment_text)
+                        x_pos += bbox_seg[2] - bbox_seg[0]
                     
-                    # Move to next line
+                    # Move to next line with line spacing multiplier
                     bbox = content_font.getbbox("A")
                     line_height = bbox[3] - bbox[1]
                     current_y += int(line_height * line_spacing_multiplier)

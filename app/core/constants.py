@@ -54,7 +54,7 @@ BAR_GAP = 0  # Gap between title background bars
 VERTICAL_CORRECTION = -3  # Vertical text positioning correction
 LINE_SPACING = 20
 SECTION_SPACING = 60
-CONTENT_LETTER_SPACING = -0.22  # Letter spacing multiplier (0.78x = 22% tighter than default)
+CONTENT_LINE_SPACING = 0.78  # Line spacing multiplier (78% of default)
 
 # Music
 DEFAULT_MUSIC_ID = "default_01"
