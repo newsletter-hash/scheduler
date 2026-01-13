@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Test script for content logic without API calls.
-Tests numbering, line spacing, and padding without generating images.
+Tests numbering, line spacing, and padding by generating test images with solid backgrounds.
 """
 import sys
 from pathlib import Path
+from PIL import Image, ImageDraw
 
 # Add the app directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent / "app"))
@@ -15,7 +16,10 @@ from app.core.constants import (
     TITLE_SIDE_PADDING,
     CONTENT_LINE_SPACING,
     REEL_WIDTH,
+    REEL_HEIGHT,
 )
+from app.core.config import BrandType
+from app.services.image_generator import ImageGenerator
 
 def test_content_logic():
     """Test content logic without API calls."""
@@ -90,6 +94,75 @@ def test_content_logic():
     print("  • Line spacing: 0.78x (78% of default, ~38px)")
     print("  • Letter spacing: Default (no custom spacing)")
     print("  • Numbering: ALL lines including CTA")
+    
+    # Test 5: Generate actual image without API
+    print(f"\n🖼️  Test 5: Generate Test Image (No API)")
+    output_dir = Path(__file__).parent / "output"
+    output_dir.mkdir(exist_ok=True)
+    
+    # Monkey-patch the AI background generator to prevent API calls
+    from app.services import ai_background_generator
+    original_generate = ai_background_generator.AIBackgroundGenerator.generate_background
+    
+    def mock_generate_background(self, *args, **kwargs):
+        """Mock background generator that returns solid color without API call."""
+        print(f"  🎨 Using mock background (no API call)")
+        return Image.new('RGB', (REEL_WIDTH, REEL_HEIGHT), (30, 30, 40))
+    
+    # Apply the mock
+    ai_background_generator.AIBackgroundGenerator.generate_background = mock_generate_background
+    
+    # Generate test images
+    test_cases = [
+        {
+            "name": "Dark mode with all features",
+            "variant": "dark",
+            "title": "FOODS THAT DESTROY\nYOUR SLEEP QUALITY",
+            "title_font_size": 56,
+            "lines": [
+                "Coffee after 2pm — Blocks adenosine for 8+ hours",
+                "Dark chocolate at night — Hidden caffeine content",
+                "Spicy dinners — Raises body temperature",
+                "We have more for you, follow this page for Part 2!"
+            ]
+        },
+        {
+            "name": "Custom font size",
+            "variant": "dark",
+            "title": "SHORT TITLE\nWORKS GREAT",
+            "title_font_size": 64,
+            "lines": [
+                "First point here",
+                "Second point here",
+                "Follow this page!"
+            ]
+        }
+    ]
+    
+    for i, test in enumerate(test_cases, 1):
+        print(f"\n  Test Image {i}: {test['name']}")
+        generator = ImageGenerator(
+            brand_type=BrandType.THE_GYM_COLLEGE,
+            variant=test['variant'],
+            brand_name='gymcollege'
+        )
+        
+        output_path = output_dir / f"test_content_{i}.png"
+        result = generator.generate_reel_image(
+            title=test['title'],
+            lines=test['lines'],
+            output_path=output_path,
+            title_font_size=test['title_font_size']
+        )
+        print(f"    ✅ Generated: {result}")
+    
+    # Restore original function
+    ai_background_generator.AIBackgroundGenerator.generate_background = original_generate
+    
+    print(f"\n{'='*60}")
+    print("✅ All tests completed successfully!")
+    print(f"\n📁 Check output folder for generated test images:")
+    print(f"   {output_dir.absolute()}")
 
 if __name__ == "__main__":
     try:
