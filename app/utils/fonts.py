@@ -85,7 +85,7 @@ def get_title_font(size: int = TITLE_FONT_SIZE) -> ImageFont.FreeTypeFont:
 
 def get_brand_font(size: int = BRAND_FONT_SIZE) -> ImageFont.FreeTypeFont:
     """Get the font for brand text."""
-    return load_font(FONT_REGULAR, size)
+    return load_font(FONT_BOLD, size)
 
 
 def calculate_dynamic_font_size(
