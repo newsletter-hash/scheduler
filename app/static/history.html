@@ -254,15 +254,9 @@
             color: #92400e;
         }
         
-        /* Quick actions on card hover */
+        /* Quick actions removed - delete button always visible on right side */
         .job-quick-actions {
             display: none;
-            gap: 6px;
-            margin-top: 8px;
-        }
-        
-        .job-card:hover .job-quick-actions {
-            display: flex;
         }
         
         .quick-action-btn {
@@ -430,9 +424,7 @@
             transition: all var(--transition-fast);
         }
         
-        .job-card:hover .job-id {
-            background: linear-gradient(135deg, var(--gray-200) 0%, var(--gray-300) 100%);
-        }
+        /* job-id hover removed */
         
         .job-info {
             min-width: 0;
@@ -594,13 +586,13 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 14px;
+            padding: 6px 12px;
             border-radius: var(--radius-full);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: capitalize;
             letter-spacing: 0.2px;
-            transition: all var(--transition-fast);
+            white-space: nowrap;
         }
         
         .status-pending { 
@@ -1514,7 +1506,7 @@
                 if (autoRefreshEnabled && !document.getElementById('jobModal').classList.contains('active')) {
                     silentRefresh();
                 }
-            }, 10000); // Refresh every 10 seconds
+            }, 30000); // Refresh every 30 seconds (reduced from 10s to avoid flicker)
         }
         
         function stopAutoRefresh() {
@@ -1775,22 +1767,6 @@
                 );
                 const firstVideoPath = firstCompletedBrand ? (brandOutputs[firstCompletedBrand] || {}).video_path : null;
                 
-                // Quick actions on hover - only download and retry
-                const quickActions = `
-                    <div class="job-quick-actions">
-                        ${firstVideoPath ? `
-                            <a class="quick-action-btn download" href="${firstVideoPath}" download onclick="event.stopPropagation()" title="Download first video">
-                                📥 Download
-                            </a>
-                        ` : ''}
-                        ${hasErrors || failedBrands > 0 ? `
-                            <button class="quick-action-btn regen" onclick="event.stopPropagation(); quickRegenerateFailed('${job.job_id}')" title="Regenerate failed">
-                                🔄 Retry
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-                
                 // Determine the REAL status based on brand outputs
                 let realStatus = job.status;
                 let realStatusClass = statusClass;
@@ -1826,7 +1802,6 @@
                                 <span>⚠️ ${escapeHtml(job.error_message.substring(0, 80))}${job.error_message.length > 80 ? '...' : ''}</span>
                             </div>
                         ` : ''}
-                        ${quickActions}
                     </div>
                     <div class="job-brands">
                         ${brandBadges}
