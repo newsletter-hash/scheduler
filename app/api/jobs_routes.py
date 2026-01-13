@@ -524,3 +524,49 @@ async def cancel_job(job_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to cancel job: {str(e)}"
         )
+
+
+@router.get(
+    "/{job_id}/next-slots",
+    summary="Get next available schedule slots for all brands in a job"
+)
+async def get_next_slots(job_id: str):
+    """
+    Get the next available scheduling slots for all brands in a job.
+    
+    Uses the magic scheduling system:
+    - Each brand has 6 daily slots (every 4 hours)
+    - Slots alternate Light → Dark → Light → Dark → Light → Dark
+    - Brands are staggered by 1 hour
+    - Finds next available slot matching the job's variant
+    """
+    try:
+        with get_db_session() as db:
+            manager = JobManager(db)
+            
+            job = manager.get_job(job_id)
+            if not job:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Job not found: {job_id}"
+                )
+            
+            from app.services.db_scheduler import DatabaseSchedulerService
+            scheduler = DatabaseSchedulerService()
+            
+            # Get next slots for all brands
+            slots = scheduler.get_next_slots_for_job(
+                brands=job.brands,
+                variant=job.variant
+            )
+            
+            # Convert to ISO format
+            return {brand: slot.isoformat() for brand, slot in slots.items()}
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get slots: {str(e)}"
+        )

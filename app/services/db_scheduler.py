@@ -417,15 +417,24 @@ class DatabaseSchedulerService:
         """
         Get the next available scheduling slot for a brand+variant combo.
         
-        Slot Rules:
-        - Light mode: 12 AM, 8 AM, 4 PM (every 8 hours starting at midnight)
-        - Dark mode: 4 AM, 12 PM, 8 PM (every 8 hours starting at 4 AM)
+        MAGIC SCHEDULING RULES:
+        ========================
+        Each brand posts 6 times daily (every 4 hours), alternating Light → Dark.
+        Brands are staggered by 1 hour:
         
-        Starting from January 16, 2026, or today if after that date.
-        Each brand has its own independent schedule.
+        Gym College:      12AM(L), 4AM(D), 8AM(L), 12PM(D), 4PM(L), 8PM(D)
+        Healthy College:  1AM(L), 5AM(D), 9AM(L), 1PM(D), 5PM(L), 9PM(D)
+        Vitality College: 2AM(L), 6AM(D), 10AM(L), 2PM(D), 6PM(L), 10PM(D)
+        Longevity College: 3AM(L), 7AM(D), 11AM(L), 3PM(D), 7PM(L), 11PM(D)
+        
+        Rules:
+        1. Start only from January 16, 2026 (everything before is "filled")
+        2. If today > Jan 16, start from today's date
+        3. Find next slot matching the variant (light/dark)
+        4. Skip slots that are already scheduled
         
         Args:
-            brand: Brand name ("gymcollege" or "healthycollege")
+            brand: Brand name ("gymcollege", "healthycollege", "vitalitycollege", "longevitycollege")
             variant: "light" or "dark"
             reference_date: Optional reference date (defaults to now)
             
@@ -434,23 +443,44 @@ class DatabaseSchedulerService:
         """
         from datetime import timedelta
         
-        # Define slot hours
-        LIGHT_SLOTS = [0, 8, 16]   # 12 AM, 8 AM, 4 PM
-        DARK_SLOTS = [4, 12, 20]   # 4 AM, 12 PM, 8 PM
+        # Brand hour offsets (staggered by 1 hour)
+        BRAND_OFFSETS = {
+            "gymcollege": 0,
+            "healthycollege": 1,
+            "vitalitycollege": 2,
+            "longevitycollege": 3
+        }
         
-        slots = LIGHT_SLOTS if variant == "light" else DARK_SLOTS
+        # Base slot pattern (every 4 hours, alternating L/D/L/D/L/D)
+        # For gymcollege at offset 0: 0(L), 4(D), 8(L), 12(D), 16(L), 20(D)
+        BASE_SLOTS = [
+            (0, "light"),   # 12 AM - Light
+            (4, "dark"),    # 4 AM - Dark
+            (8, "light"),   # 8 AM - Light
+            (12, "dark"),   # 12 PM - Dark
+            (16, "light"),  # 4 PM - Light
+            (20, "dark"),   # 8 PM - Dark
+        ]
         
-        # Starting reference point
+        # Get brand offset
+        brand_lower = brand.lower()
+        offset = BRAND_OFFSETS.get(brand_lower, 0)
+        
+        # Build slots for this brand (apply offset)
+        brand_slots = [(hour + offset, v) for hour, v in BASE_SLOTS]
+        
+        # Filter to only slots matching requested variant
+        matching_slots = [hour for hour, v in brand_slots if v == variant]
+        
+        # Starting reference points
         start_date = datetime(2026, 1, 16, tzinfo=timezone.utc)
         now = reference_date or datetime.now(timezone.utc)
         
-        # Use the later of start_date or now
+        # Use the later of start_date or now (Rule 1 & 2)
         base_date = max(start_date, now)
         
-        # Get all scheduled posts for this brand+variant
+        # Get all scheduled posts for this brand
         with get_db_session() as db:
-            # Get schedules for this brand that are scheduled or publishing
-            # Filter by variant in metadata
             schedules = db.query(ScheduledReel).filter(
                 and_(
                     ScheduledReel.status.in_(["scheduled", "publishing"]),
@@ -458,32 +488,30 @@ class DatabaseSchedulerService:
                 )
             ).all()
             
-            # Filter by brand and variant
+            # Filter by brand and variant - build set of occupied timestamps
             occupied_slots = set()
             for schedule in schedules:
                 metadata = schedule.extra_data or {}
                 schedule_brand = metadata.get("brand", "").lower()
                 schedule_variant = metadata.get("variant", "light")
                 
-                # Match by brand name (normalize gymcollege and healthycollege)
-                brand_match = (
-                    (brand.lower() == "gymcollege" and schedule_brand in ["gymcollege", "the_gym_college", ""]) or
-                    (brand.lower() == "healthycollege" and schedule_brand in ["healthycollege", "wellness_life"])
-                )
-                
-                if brand_match and schedule_variant == variant:
+                # Match by brand name
+                if schedule_brand == brand_lower and schedule_variant == variant:
                     # Store as timestamp for easy comparison
-                    occupied_slots.add(schedule.scheduled_time.replace(tzinfo=timezone.utc).timestamp())
+                    ts = schedule.scheduled_time
+                    if ts.tzinfo is None:
+                        ts = ts.replace(tzinfo=timezone.utc)
+                    occupied_slots.add(ts.timestamp())
         
         # Find next available slot starting from base_date
-        current = base_date.replace(minute=0, second=0, microsecond=0)
+        current_day = base_date.replace(hour=0, minute=0, second=0, microsecond=0)
         
-        # Find the next valid slot hour on or after current time
-        max_iterations = 365 * 3  # Don't search more than 3*365 slot checks (~1 year)
-        
-        for _ in range(max_iterations):
-            for hour in slots:
-                candidate = current.replace(hour=hour)
+        # Search up to 365 days ahead
+        for day_offset in range(365):
+            check_date = current_day + timedelta(days=day_offset)
+            
+            for hour in matching_slots:
+                candidate = check_date.replace(hour=hour, minute=0, second=0, microsecond=0)
                 
                 # Skip if in the past
                 if candidate <= now:
@@ -491,15 +519,32 @@ class DatabaseSchedulerService:
                 
                 # Check if slot is available
                 if candidate.timestamp() not in occupied_slots:
+                    print(f"📅 Found next slot for {brand}/{variant}: {candidate.isoformat()}")
                     return candidate
-            
-            # Move to next day
-            current = current + timedelta(days=1)
-            current = current.replace(hour=0)
         
-        # Fallback: just return tomorrow at first slot
+        # Fallback: just return tomorrow at first matching slot
         tomorrow = now + timedelta(days=1)
-        return tomorrow.replace(hour=slots[0], minute=0, second=0, microsecond=0)
+        return tomorrow.replace(hour=matching_slots[0], minute=0, second=0, microsecond=0)
+
+    def get_next_slots_for_job(
+        self,
+        brands: list[str],
+        variant: str
+    ) -> Dict[str, datetime]:
+        """
+        Get next available slots for all brands in a job.
+        
+        Args:
+            brands: List of brand names
+            variant: "light" or "dark"
+            
+        Returns:
+            Dict mapping brand name to next available slot datetime
+        """
+        result = {}
+        for brand in brands:
+            result[brand] = self.get_next_available_slot(brand, variant)
+        return result
 
     def get_scheduled_slots_for_brand(
         self,

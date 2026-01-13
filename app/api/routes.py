@@ -639,6 +639,111 @@ async def schedule_reel(request: ScheduleRequest):
         )
 
 
+class AutoScheduleRequest(BaseModel):
+    """Request to auto-schedule a reel to next available slot."""
+    reel_id: str
+    brand: str
+    variant: str
+    caption: str = "CHANGE ME"
+    user_id: str = "default"
+    video_path: Optional[str] = None
+    thumbnail_path: Optional[str] = None
+
+
+@router.post(
+    "/schedule-auto",
+    summary="Auto-schedule a reel to next available slot",
+    description="Automatically schedule a reel to the next available time slot based on brand and variant"
+)
+async def schedule_auto(request: AutoScheduleRequest):
+    """
+    Auto-schedule a reel to the next available slot using magic scheduling.
+    
+    MAGIC SCHEDULING RULES:
+    - Each brand has 6 daily slots (every 4 hours), alternating Light → Dark
+    - Brands are staggered by 1 hour:
+      - Gym College: 12AM(L), 4AM(D), 8AM(L), 12PM(D), 4PM(L), 8PM(D)
+      - Healthy College: 1AM(L), 5AM(D), 9AM(L), 1PM(D), 5PM(L), 9PM(D)
+      - Vitality College: 2AM(L), 6AM(D), 10AM(L), 2PM(D), 6PM(L), 10PM(D)
+      - Longevity College: 3AM(L), 7AM(D), 11AM(L), 3PM(D), 7PM(L), 11PM(D)
+    - Starts from Jan 16, 2026 or today (whichever is later)
+    """
+    print("\n" + "="*80)
+    print("🪄 AUTO-SCHEDULING REQUEST")
+    print("="*80)
+    print(f"📋 Reel ID: {request.reel_id}")
+    print(f"🏷️  Brand: {request.brand}")
+    print(f"🎨 Variant: {request.variant}")
+    
+    try:
+        # Get next available slot
+        next_slot = scheduler_service.get_next_available_slot(
+            brand=request.brand,
+            variant=request.variant
+        )
+        
+        print(f"📅 Next available slot: {next_slot.isoformat()}")
+        
+        # Get file paths
+        base_dir = Path(__file__).resolve().parent.parent.parent
+        
+        if request.video_path:
+            video_path = Path(request.video_path)
+            if not video_path.is_absolute():
+                video_path = base_dir / request.video_path.lstrip('/')
+        else:
+            video_path = base_dir / "output" / "videos" / f"{request.reel_id}_video.mp4"
+        
+        if request.thumbnail_path:
+            thumbnail_path = Path(request.thumbnail_path)
+            if not thumbnail_path.is_absolute():
+                thumbnail_path = base_dir / request.thumbnail_path.lstrip('/')
+        else:
+            thumbnail_path = base_dir / "output" / "thumbnails" / f"{request.reel_id}_thumbnail.png"
+        
+        print(f"🎬 Video path: {video_path}")
+        print(f"🖼️  Thumbnail path: {thumbnail_path}")
+        
+        # Schedule the reel
+        result = scheduler_service.schedule_reel(
+            user_id=request.user_id,
+            reel_id=request.reel_id,
+            scheduled_time=next_slot,
+            video_path=video_path if video_path.exists() else None,
+            thumbnail_path=thumbnail_path if thumbnail_path.exists() else None,
+            caption=request.caption,
+            platforms=["instagram"],
+            user_name=request.user_id,
+            brand=request.brand,
+            variant=request.variant
+        )
+        
+        print(f"✅ Scheduled successfully!")
+        print(f"📝 Schedule ID: {result.get('schedule_id')}")
+        print("="*80 + "\n")
+        
+        return {
+            "status": "scheduled",
+            "reel_id": request.reel_id,
+            "brand": request.brand,
+            "variant": request.variant,
+            "schedule_id": result.get('schedule_id'),
+            "scheduled_for": next_slot.isoformat(),
+            "message": f"Reel auto-scheduled for {next_slot.strftime('%Y-%m-%d %I:%M %p')}"
+        }
+        
+    except Exception as e:
+        print(f"\n❌ ERROR: Failed to auto-schedule")
+        print(f"   Details: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print("="*80 + "\n")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to auto-schedule reel: {str(e)}"
+        )
+
+
 @router.post(
     "/download",
     summary="Download reel to numbered folder",

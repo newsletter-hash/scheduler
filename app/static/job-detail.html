@@ -134,6 +134,8 @@
             font-weight: 700;
             color: var(--gray-800);
             margin: 8px 0;
+            white-space: pre-line;
+            line-height: 1.3;
         }
         
         .job-meta {
@@ -511,9 +513,9 @@
                             <span class="meta-item" id="jobProgress"></span>
                         </div>
                     </div>
-                    <div class="header-actions">
+                    <div class="header-actions" id="headerActions">
                         <button class="btn btn-secondary" onclick="openEditTitleModal()">✏️ Edit Title</button>
-                        <button class="btn btn-primary" onclick="regenerateAll()">🔄 Regenerate All</button>
+                        <button class="btn btn-primary" id="regenerateAllBtn" onclick="regenerateAll()">🔄 Regenerate All</button>
                         <button class="btn btn-danger" onclick="deleteJob()">🗑️ Delete Job</button>
                     </div>
                 </div>
@@ -596,9 +598,17 @@
             // Header info
             document.getElementById('jobId').textContent = currentJob.job_id;
             
-            // Format title - replace newlines with visual indicator
-            const titleDisplay = (currentJob.title || 'Untitled').split('\n')[0];
-            document.getElementById('jobTitle').textContent = titleDisplay;
+            // Show full title with line breaks preserved
+            const fullTitle = currentJob.title || 'Untitled';
+            document.getElementById('jobTitle').textContent = fullTitle;
+            
+            // Hide regenerate all button if job is generating
+            const regenerateBtn = document.getElementById('regenerateAllBtn');
+            if (currentJob.status === 'generating' || currentJob.status === 'pending') {
+                regenerateBtn.style.display = 'none';
+            } else {
+                regenerateBtn.style.display = 'inline-flex';
+            }
             
             // Status badge
             const statusEl = document.getElementById('jobStatus');
@@ -719,53 +729,67 @@
             }).join('');
         }
         
-        // Load next available schedule slots
+        // Load next available schedule slots from API
         async function loadNextSlots() {
             try {
+                // Call API to get next slots for all brands
+                const response = await fetch(`/jobs/${jobId}/next-slots`);
+                if (!response.ok) {
+                    throw new Error('Failed to load slots');
+                }
+                
+                const slots = await response.json();
                 const slotsContainer = document.getElementById('scheduleSlots');
+                
                 slotsContainer.innerHTML = (currentJob.brands || []).map(brand => {
                     const config = brandConfig[brand] || { name: brand };
-                    // Calculate next slot (placeholder - would come from API)
-                    const nextSlot = getNextSlot(brand);
-                    return `
-                        <div class="schedule-slot">
-                            <div class="brand-label">${config.name}</div>
-                            <div class="slot-time">${nextSlot}</div>
-                        </div>
-                    `;
+                    const slotData = slots[brand];
+                    
+                    if (slotData) {
+                        const slotDate = new Date(slotData);
+                        const formattedDate = formatSlotDate(slotDate);
+                        return `
+                            <div class="schedule-slot">
+                                <div class="brand-label">${config.name}</div>
+                                <div class="slot-time">${formattedDate}</div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="schedule-slot">
+                                <div class="brand-label">${config.name}</div>
+                                <div class="slot-time">No slot available</div>
+                            </div>
+                        `;
+                    }
                 }).join('');
             } catch (error) {
                 console.error('Error loading slots:', error);
+                // Fallback to placeholder display
+                const slotsContainer = document.getElementById('scheduleSlots');
+                slotsContainer.innerHTML = '<div class="schedule-slot"><div class="slot-time">Could not load schedule slots</div></div>';
             }
         }
         
-        // Get next available slot for a brand (placeholder logic)
-        function getNextSlot(brand) {
-            const brandSchedules = {
-                'gymcollege': ['09:00', '15:00', '21:00'],
-                'healthycollege': ['08:30', '14:30', '20:30'],
-                'vitalitycollege': ['10:00', '16:00', '22:00'],
-                'longevitycollege': ['09:30', '15:30', '21:30']
-            };
-            
+        // Format slot datetime for display
+        function formatSlotDate(date) {
             const now = new Date();
-            const slots = brandSchedules[brand] || ['12:00'];
-            
-            // Find next available slot
-            for (const slot of slots) {
-                const [hours, minutes] = slot.split(':').map(Number);
-                const slotTime = new Date(now);
-                slotTime.setHours(hours, minutes, 0, 0);
-                
-                if (slotTime > now) {
-                    return `Today, ${slot}`;
-                }
-            }
-            
-            // If no slot today, return first slot tomorrow
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            return `Tomorrow, ${slots[0]}`;
+            
+            const isToday = date.toDateString() === now.toDateString();
+            const isTomorrow = date.toDateString() === tomorrow.toDateString();
+            
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            
+            if (isToday) {
+                return `Today, ${timeStr}`;
+            } else if (isTomorrow) {
+                return `Tomorrow, ${timeStr}`;
+            } else {
+                const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                return `${dateStr}, ${timeStr}`;
+            }
         }
         
         // Download brand assets
@@ -780,8 +804,37 @@
         
         // Schedule a single brand
         async function scheduleBrand(brand) {
-            showToast(`Scheduling ${brandConfig[brand]?.name || brand}...`, 'success');
-            // Implementation would call the schedule API
+            try {
+                const output = currentJob.brand_outputs[brand];
+                if (!output || output.status !== 'completed') {
+                    showToast('Brand not completed yet', 'error');
+                    return;
+                }
+                
+                showToast(`Scheduling ${brandConfig[brand]?.name || brand}...`, 'success');
+                
+                const response = await fetch('/reels/schedule-auto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reel_id: output.reel_id,
+                        brand: brand,
+                        variant: currentJob.variant,
+                        user_id: 'default',
+                        caption: `Generated from job ${currentJob.job_id}`
+                    })
+                });
+                
+                if (response.ok) {
+                    showToast(`${brandConfig[brand]?.name || brand} scheduled!`, 'success');
+                    loadNextSlots(); // Refresh slots
+                } else {
+                    throw new Error('Failed to schedule');
+                }
+            } catch (error) {
+                console.error('Error scheduling:', error);
+                showToast('Failed to schedule', 'error');
+            }
         }
         
         // Schedule all brands
@@ -798,25 +851,33 @@
                 
                 showToast(`Scheduling ${completedBrands.length} brands...`, 'success');
                 
-                // Schedule each brand
+                let successCount = 0;
+                
+                // Schedule each brand using auto-schedule API
                 for (const brand of completedBrands) {
                     const output = currentJob.brand_outputs[brand];
-                    const reelId = output.reel_id;
                     
-                    // Call schedule API for each brand
-                    await fetch('/reels/schedule', {
+                    const response = await fetch('/reels/schedule-auto', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            reel_id: reelId,
+                            reel_id: output.reel_id,
                             brand: brand,
+                            variant: currentJob.variant,
                             user_id: 'default',
-                            caption: `Generated from job ${currentJob.job_id}`
+                            caption: `Generated from job ${currentJob.job_id}`,
+                            video_path: output.video_path,
+                            thumbnail_path: output.thumbnail_path
                         })
                     });
+                    
+                    if (response.ok) {
+                        successCount++;
+                    }
                 }
                 
-                showToast('All brands scheduled successfully!', 'success');
+                loadNextSlots(); // Refresh slots after scheduling
+                showToast(`${successCount}/${completedBrands.length} brands scheduled successfully!`, 'success');
                 
             } catch (error) {
                 console.error('Error scheduling:', error);
