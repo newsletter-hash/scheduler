@@ -73,7 +73,7 @@ class ImageGenerator:
         print(f"   Loading brand colors...", flush=True)
         # Load brand-specific colors from centralized configuration
         self.brand_colors = get_brand_colors(brand_name, variant)
-        print(f"   ✓ Brand colors loaded: {list(self.brand_colors.keys()) if self.brand_colors else 'None'}", flush=True)
+        print(f"   ✓ Brand colors loaded: {type(self.brand_colors).__name__}", flush=True)
         
         # Pre-generate AI background for dark mode (one image for both thumbnail and content)
         if variant == "dark":
