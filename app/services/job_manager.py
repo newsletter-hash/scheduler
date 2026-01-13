@@ -134,6 +134,8 @@ class JobManager:
     ) -> Optional[GenerationJob]:
         """Update output data for a specific brand."""
         import sys
+        from sqlalchemy.orm.attributes import flag_modified
+        
         print(f"\n📝 update_brand_output called:", flush=True)
         print(f"   job_id: {job_id}", flush=True)
         print(f"   brand: {brand}", flush=True)
@@ -147,12 +149,16 @@ class JobManager:
         
         print(f"   Current brand_outputs: {job.brand_outputs}", flush=True)
         
-        brand_outputs = job.brand_outputs or {}
+        # Create a new dict to ensure SQLAlchemy detects the change
+        brand_outputs = dict(job.brand_outputs or {})
         brand_outputs[brand] = {**brand_outputs.get(brand, {}), **output_data}
         job.brand_outputs = brand_outputs
         
+        # CRITICAL: Flag the column as modified for SQLAlchemy to commit the change
+        flag_modified(job, "brand_outputs")
+        
         print(f"   Updated brand_outputs: {job.brand_outputs}", flush=True)
-        print(f"   Committing to database...", flush=True)
+        print(f"   Committing to database (flag_modified applied)...", flush=True)
         sys.stdout.flush()
         
         self.db.commit()
