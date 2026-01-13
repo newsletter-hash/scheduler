@@ -11,7 +11,7 @@ class BrandType(str, Enum):
     """Available brand types."""
     THE_GYM_COLLEGE = "THE_GYM_COLLEGE"
     FITNESS_PRO = "FITNESS_PRO"
-    WELLNESS_LIFE = "WELLNESS_LIFE"
+    HEALTHY_COLLEGE = "HEALTHY_COLLEGE"
     VITALITY_COLLEGE = "VITALITY_COLLEGE"
     LONGEVITY_COLLEGE = "LONGEVITY_COLLEGE"
 
@@ -69,14 +69,14 @@ BRAND_CONFIGS: Dict[BrandType, BrandConfig] = {
         facebook_page_id=os.getenv("FITNESSPRO_FACEBOOK_PAGE_ID"),
         meta_access_token=os.getenv("FITNESSPRO_META_TOKEN") or os.getenv("META_ACCESS_TOKEN"),
     ),
-    BrandType.WELLNESS_LIFE: BrandConfig(
-        name="WELLNESS_LIFE",
-        display_name="Wellness Life",
+    BrandType.HEALTHY_COLLEGE: BrandConfig(
+        name="HEALTHY_COLLEGE",
+        display_name="Healthy College",
         primary_color=(240, 255, 240),  # Light green background
         secondary_color=(0, 100, 0),  # Green #006400
         text_color=(0, 100, 0),  # Green text
         highlight_color=(0, 104, 55, 255),  # #006837
-        logo_filename="wellness_life_logo.png",
+        logo_filename="healthy_college_logo.png",
         thumbnail_bg_color=(240, 255, 240),
         thumbnail_text_color=(0, 100, 0),  # #006400 for light mode
         content_title_color=(255, 255, 255),  # White text
