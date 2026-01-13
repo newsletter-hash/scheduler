@@ -23,6 +23,76 @@ class ContentGenerator:
         else:
             print("✅ Content Generator initialized with DeepSeek API")
     
+    def _select_cta(self) -> Optional[str]:
+        """
+        Select a CTA based on probability distribution.
+        Returns None if no CTA should be added (60% chance).
+        """
+        # Create weighted list based on CTA_OPTIONS
+        categories = []
+        weights = []
+        for category, data in self.CTA_OPTIONS.items():
+            categories.append(category)
+            weights.append(data["weight"])
+        
+        # Select category based on weights
+        selected_category = random.choices(categories, weights=weights, k=1)[0]
+        
+        # If "none" selected, return None (no CTA)
+        if selected_category == "none":
+            return None
+        
+        # Return random CTA from selected category
+        options = self.CTA_OPTIONS[selected_category]["options"]
+        if options:
+            return random.choice(options)
+        return None
+    
+    def _append_cta_to_content(self, content_data: Dict) -> Dict:
+        """
+        Append a selected CTA to the content_lines if applicable.
+        Modifies content_data in place and returns it.
+        """
+        cta = self._select_cta()
+        if cta:
+            content_data["content_lines"].append(cta)
+            content_data["cta_added"] = cta
+        else:
+            content_data["cta_added"] = None
+        return content_data
+    
+    # Fixed CTA options with probability distribution
+    # 60% - No explicit CTA (standard format ends naturally)
+    # 30% - Follow page CTA
+    # 10% - Part 2 teaser CTA
+    CTA_OPTIONS = {
+        "none": {
+            "weight": 60,
+            "options": []  # No CTA appended
+        },
+        "follow_page": {
+            "weight": 30,
+            "options": [
+                "If you want to improve your health, follow this page.",
+                "For more wellness tips, follow this page.",
+                "Want to learn more? Follow this page.",
+                "Follow this page for daily health insights.",
+                "Your health matters — Follow this page.",
+                "Stay informed — Follow this page."
+            ]
+        },
+        "part2_teaser": {
+            "weight": 10,
+            "options": [
+                "We have more for you — Follow for Part 2!",
+                "Part 2 coming soon — Follow this page!",
+                "This is just the beginning — Follow for more!",
+                "Stay tuned for Part 2 — Follow this page!",
+                "More secrets revealed in Part 2 — Follow us!"
+            ]
+        }
+    }
+    
     # Topic categories for rotation
     TOPIC_CATEGORIES = [
         "Body signals and weird symptoms that reveal hidden health issues",
@@ -106,11 +176,12 @@ Create ONE completely original, scroll-stopping post about: {topic}
   * "[FOOD/HABIT] THAT WORKS LIKE [MEDICINE]"
 
 ### CONTENT RULES:
-- EXACTLY 8 points (no more, no less)
+- EXACTLY 7 points (no more, no less)
 - DO NOT include numbers (1., 2., etc.) - numbers are added automatically by our system
 - Each point must be: concrete, specific, believable but slightly surprising
 - Mix: 60% validating (things they suspect), 40% shocking (new revelation)
-- Point 8 MUST be a CTA ending with "follow this page"
+- DO NOT include any CTA (Call-To-Action) - it will be added automatically by the system
+- DO NOT include anything like "follow this page" or "save this post"
 - NO medical disclaimers within points
 - NO generic advice - be SPECIFIC
 
@@ -119,7 +190,7 @@ Create ONE completely original, scroll-stopping post about: {topic}
 ✅ Points alternate between familiar and surprising
 ✅ Each point is dense with value
 ✅ Information feels insider/exclusive
-✅ Ends with compelling CTA
+✅ NO CTA included (system adds it automatically)
 
 ## VIRAL CONTENT EXAMPLES (1M+ VIEWS):
 
@@ -132,7 +203,6 @@ Tylenol — Misfires; Feeds your liver toxins
 Advil — Gut bloating
 Aleve — Damages your Vagus Nerve
 Diphenhydramine — Confusion, fatigue, anxiety
-If you want to improve your health, follow this page.
 
 EXAMPLE 2 - FULL SENTENCE STYLE:
 Title: EARLY HEART WARNING SIGNS MOST PEOPLE OVERLOOK
@@ -143,7 +213,6 @@ Dizziness when standing up quickly can indicate reduced circulation.
 Swelling in the feet or ankles may result from fluid buildup.
 Frequent indigestion that doesn't improve can be heart-related.
 Irregular heartbeat or fluttering sensations should not be ignored.
-Pay attention early — Follow this page for more.
 
 EXAMPLE 3 - CAUSE-EFFECT STYLE:
 Title: EAT THIS FOR 7 DAYS AND FEEL THE DIFFERENCE
@@ -154,7 +223,6 @@ A serving of blueberries — Boosts memory and brain focus.
 Ginger tea in the evening — Calms digestion and supports sleep.
 Plain yogurt daily — Supports gut balance.
 Handful of nuts mid-afternoon — Steady energy levels.
-Simple food changes matter — Follow this page.
 
 ## IMAGE PROMPT REQUIREMENTS
 
@@ -179,8 +247,7 @@ After creating the content, generate a cinematic image prompt with:
         "Point 4 text",
         "Point 5 text",
         "Point 6 text",
-        "Point 7 text",
-        "Point 8 with CTA including follow this page"
+        "Point 7 text"
     ],
     "image_prompt": "Your detailed cinematic image prompt here ending with No text, no letters, no numbers, no symbols, no logos.",
     "format_style": "{format_style['name']}",
@@ -249,6 +316,9 @@ Generate the content now. Output ONLY the JSON, nothing else."""
                         print("⚠️ Missing required fields in response")
                         return self._fallback_content()
                     
+                    # Append CTA based on probability distribution
+                    self._append_cta_to_content(content_data)
+                    
                     # Add metadata
                     content_data["generated_at"] = datetime.now().isoformat()
                     content_data["success"] = True
@@ -279,8 +349,7 @@ Generate the content now. Output ONLY the JSON, nothing else."""
                     "Headaches without cause — Brain needs water",
                     "Muscle cramps — Electrolyte imbalance",
                     "Dry skin despite moisturizer — Internal dehydration",
-                    "Constipation issues — Gut needs fluids",
-                    "Stay hydrated daily — Follow this page."
+                    "Constipation issues — Gut needs fluids"
                 ],
                 "image_prompt": "A cinematic, full-frame wellness visualization centered on a translucent human silhouette with glowing blue water droplets flowing through the body. Highlights on brain, muscles, skin, and digestive system. Blue and teal color palette with soft aqua accents. Studio-quality cinematic lighting, clean medical aesthetic, premium wellness mood. No text, no letters, no numbers, no symbols, no logos."
             },
@@ -293,8 +362,7 @@ Generate the content now. Output ONLY the JSON, nothing else."""
                     "Alcohol before bed — Disrupts REM cycles",
                     "High-sugar snacks — Blood sugar spikes",
                     "Aged cheese — Contains stimulating tyramine",
-                    "Processed meats — Hard to digest overnight",
-                    "Better sleep starts with food choices — Follow this page."
+                    "Processed meats — Hard to digest overnight"
                 ],
                 "image_prompt": "A cinematic, full-frame sleep and nutrition illustration with a peaceful bedroom scene overlaid with floating food elements: coffee cup, chocolate, cheese, wine glass, each with subtle red warning glows. Dominant blue and deep purple palette with controlled warm accents. Soft moonlit cinematic lighting, serene yet educational mood. No text, no letters, no numbers, no symbols, no logos."
             },
@@ -307,14 +375,17 @@ Generate the content now. Output ONLY the JSON, nothing else."""
                     "Swollen edges — Nutrient malabsorption",
                     "Red tip — Stress or heart strain",
                     "Purple color — Poor circulation",
-                    "Pale appearance — Anemia or low iron",
-                    "Check your tongue daily — Follow this page."
+                    "Pale appearance — Anemia or low iron"
                 ],
                 "image_prompt": "A cinematic, full-frame medical diagnostic visualization featuring an oversized, hyper-detailed human tongue as the central focal point with subtle color zones highlighted: white, yellow, red, purple areas with soft diagnostic glows. Blue and teal clinical palette with warm accent highlights on problem areas. Studio-quality cinematic lighting, premium scientific wellness aesthetic. No text, no letters, no numbers, no symbols, no logos."
             }
         ]
         
         fallback = random.choice(fallback_posts)
+        
+        # Append CTA based on probability distribution
+        self._append_cta_to_content(fallback)
+        
         fallback["generated_at"] = datetime.now().isoformat()
         fallback["success"] = True
         fallback["is_fallback"] = True
