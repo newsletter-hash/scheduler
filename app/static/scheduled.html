@@ -444,6 +444,129 @@
             right: 0;
         }
         
+        /* Day Modal Styles */
+        .day-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1300;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .day-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .day-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 500px;
+            max-width: 90vw;
+            max-height: 80vh;
+            background: white;
+            border-radius: 16px;
+            z-index: 1400;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .day-modal.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .day-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .day-modal-header h2 {
+            font-size: 18px;
+            color: #1a1a2e;
+        }
+        
+        .day-modal-content {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .day-post-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .day-post-item:hover {
+            background: #e9ecef;
+        }
+        
+        .day-post-item.published {
+            background: #d1fae5;
+        }
+        
+        .day-post-item.failed {
+            background: #fee2e2;
+        }
+        
+        .day-post-brand {
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .day-post-info {
+            flex: 1;
+        }
+        
+        .day-post-time {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        
+        .day-post-platforms {
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        
+        .day-post-status {
+            font-size: 18px;
+        }
+        
+        .day-post-status.published {
+            color: #10b981;
+        }
+        
+        .day-post-status.failed {
+            color: #ef4444;
+        }
+        
         .detail-header {
             padding: 20px 24px;
             border-bottom: 1px solid #e2e8f0;
@@ -799,6 +922,18 @@
         </div>
     </div>
     
+    <!-- Day View Modal -->
+    <div class="day-modal-overlay" id="dayModalOverlay" onclick="closeDayModal()"></div>
+    <div class="day-modal" id="dayModal">
+        <div class="day-modal-header">
+            <h2 id="dayModalTitle">Posts for Day</h2>
+            <button class="close-btn" onclick="closeDayModal()">×</button>
+        </div>
+        <div class="day-modal-content" id="dayModalContent">
+            <!-- Day posts will be populated here -->
+        </div>
+    </div>
+    
     <!-- Detail Panel Overlay -->
     <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
     
@@ -1003,7 +1138,7 @@
             
             // Get posts for this day
             const dayPosts = getPostsForDate(date);
-            const maxVisible = currentView === 'week' ? 5 : 3;
+            const maxVisible = 5;
             
             dayPosts.slice(0, maxVisible).forEach(post => {
                 postsContainer.appendChild(createPostItem(post));
@@ -1110,11 +1245,73 @@
         }
         
         function showDayPosts(date, posts) {
-            // For now, just show the first post detail
-            // Could be enhanced to show a day-specific modal
-            if (posts.length > 0) {
-                showPostDetail(posts[0]);
-            }
+            const overlay = document.getElementById('dayModalOverlay');
+            const modal = document.getElementById('dayModal');
+            const title = document.getElementById('dayModalTitle');
+            const content = document.getElementById('dayModalContent');
+            
+            // Format date for title
+            const dateStr = date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            title.textContent = `📅 ${dateStr}`;
+            
+            // Build posts list
+            content.innerHTML = posts.map(post => {
+                const brand = post.brand || '';
+                const brandNames = {
+                    'gymcollege': 'Gym College',
+                    'healthycollege': 'Healthy College',
+                    'vitalitycollege': 'Vitality College',
+                    'longevitycollege': 'Longevity College'
+                };
+                const brandColors = {
+                    'gymcollege': '#00435c',
+                    'healthycollege': '#006400',
+                    'vitalitycollege': '#c0569f',
+                    'longevitycollege': '#be7f09'
+                };
+                const platforms = post.platforms || ['instagram'];
+                const time = new Date(post.scheduled_time).toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit', 
+                    hour12: true 
+                });
+                
+                let statusIcon = '⏰';
+                switch (post.status) {
+                    case 'scheduled': statusIcon = '⏰'; break;
+                    case 'publishing': statusIcon = '🔄'; break;
+                    case 'published': statusIcon = '✓'; break;
+                    case 'failed': statusIcon = '✕'; break;
+                }
+                
+                return `
+                    <div class="day-post-item ${post.status}" onclick="closeDayModal(); showPostDetail(allSchedules.find(s => s.schedule_id === '${post.schedule_id}'));">
+                        <div class="day-post-brand" style="background: ${brandColors[brand] || '#666'}">
+                            ${brandNames[brand] || 'Unknown'}
+                        </div>
+                        <div class="day-post-info">
+                            <div class="day-post-time">${time}</div>
+                            <div class="day-post-platforms">
+                                ${platforms.map(p => p === 'instagram' ? '📸' : '📘').join(' ')}
+                            </div>
+                        </div>
+                        <div class="day-post-status ${post.status}">${statusIcon}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            overlay.classList.add('active');
+            modal.classList.add('active');
+        }
+        
+        function closeDayModal() {
+            document.getElementById('dayModalOverlay').classList.remove('active');
+            document.getElementById('dayModal').classList.remove('active');
         }
         
         // Detail panel

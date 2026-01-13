@@ -712,7 +712,7 @@ async def schedule_auto(request: AutoScheduleRequest):
             video_path=video_path if video_path.exists() else None,
             thumbnail_path=thumbnail_path if thumbnail_path.exists() else None,
             caption=request.caption,
-            platforms=["instagram"],
+            platforms=["instagram", "facebook"],
             user_name=request.user_id,
             brand=request.brand,
             variant=request.variant
