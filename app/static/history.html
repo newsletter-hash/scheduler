@@ -661,31 +661,49 @@
         /* Brand outputs */
         .brand-outputs {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
         }
         
         .brand-output-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
             overflow: hidden;
+            background: white;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        
+        .brand-output-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #d1d5db;
+        }
+        
+        .brand-output-card.status-failed {
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+        
+        .brand-output-card.status-completed {
+            border-color: #6ee7b7;
         }
         
         .brand-output-header {
-            padding: 10px 15px;
-            background: #f8f8f8;
+            padding: 12px 16px;
+            background: #f9fafb;
             font-weight: 600;
             font-size: 13px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #e5e7eb;
         }
         
         .brand-output-preview {
             aspect-ratio: 9/16;
-            background: #f0f0f0;
+            background: #f3f4f6;
             position: relative;
             overflow: hidden;
+            max-height: 200px;
         }
         
         .brand-output-preview img {
@@ -694,10 +712,171 @@
             object-fit: cover;
         }
         
+        .brand-output-preview .no-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #9ca3af;
+            font-size: 13px;
+            gap: 8px;
+        }
+        
+        .brand-output-preview .no-preview-icon {
+            font-size: 32px;
+            opacity: 0.5;
+        }
+        
+        /* Error log section in brand card */
+        .brand-output-error {
+            padding: 10px 12px;
+            background: #fef2f2;
+            border-top: 1px solid #fecaca;
+            font-size: 12px;
+            color: #991b1b;
+        }
+        
+        .brand-output-error-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .brand-output-error-message {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            background: #fee2e2;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        
         .brand-output-actions {
-            padding: 10px;
+            padding: 12px;
             display: flex;
             gap: 8px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        /* Suggested Actions Section */
+        .suggested-actions {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .suggested-actions-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #92400e;
+        }
+        
+        .suggested-actions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .suggested-action-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #fcd34d;
+        }
+        
+        .suggested-action-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .suggested-action-icon {
+            font-size: 18px;
+        }
+        
+        .suggested-action-text {
+            flex: 1;
+            font-size: 13px;
+            color: #78350f;
+        }
+        
+        .suggested-action-arrow {
+            color: #d97706;
+        }
+        
+        /* Error Summary Section */
+        .error-summary {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .error-summary-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #991b1b;
+        }
+        
+        .error-summary-message {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            background: #fee2e2;
+            padding: 12px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 150px;
+            overflow-y: auto;
+            color: #7f1d1d;
+        }
+        
+        /* Job Info Grid improved */
+        .job-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        
+        .job-info-item {
+            background: #f9fafb;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .job-info-label {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .job-info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f2937;
         }
         
         .btn-small {
@@ -1197,13 +1376,65 @@
                 
                 document.getElementById('modalJobId').textContent = job.job_id;
                 
+                // Calculate stats
+                const brandOutputs = job.brand_outputs || {};
+                const totalBrands = (job.brands || []).length;
+                const completedBrands = Object.values(brandOutputs).filter(o => o.status === 'completed').length;
+                const failedBrands = Object.values(brandOutputs).filter(o => o.status === 'failed').length;
+                const hasErrors = failedBrands > 0;
+                const hasJobError = job.error_message && job.error_message.length > 0;
+                
+                // Get failed brand names
+                const failedBrandNames = (job.brands || []).filter(b => 
+                    (brandOutputs[b] || {}).status === 'failed'
+                );
+                
                 const modalBody = document.getElementById('modalBody');
                 modalBody.innerHTML = `
+                    ${hasJobError || hasErrors ? `
+                        <div class="error-summary">
+                            <div class="error-summary-header">
+                                <span style="font-size: 20px;">⚠️</span>
+                                <span>${job.status === 'failed' ? 'Job Failed' : `${failedBrands} Brand${failedBrands > 1 ? 's' : ''} Failed`}</span>
+                            </div>
+                            ${hasJobError ? `
+                                <div class="error-summary-message">${escapeHtml(job.error_message)}</div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="suggested-actions">
+                            <div class="suggested-actions-header">
+                                <span style="font-size: 20px;">💡</span>
+                                <span>Suggested Actions</span>
+                            </div>
+                            <div class="suggested-actions-list">
+                                ${failedBrandNames.length > 0 ? `
+                                    <div class="suggested-action-item" onclick="regenerateFailedBrands()">
+                                        <span class="suggested-action-icon">🔄</span>
+                                        <span class="suggested-action-text">Regenerate ${failedBrandNames.length} failed brand${failedBrandNames.length > 1 ? 's' : ''} (${failedBrandNames.join(', ')})</span>
+                                        <span class="suggested-action-arrow">→</span>
+                                    </div>
+                                ` : ''}
+                                <div class="suggested-action-item" onclick="regenerateAll()">
+                                    <span class="suggested-action-icon">🔁</span>
+                                    <span class="suggested-action-text">Regenerate all brands from scratch</span>
+                                    <span class="suggested-action-arrow">→</span>
+                                </div>
+                                ${hasJobError && job.error_message.includes('API') ? `
+                                    <div class="suggested-action-item" onclick="window.open('/docs', '_blank')">
+                                        <span class="suggested-action-icon">📚</span>
+                                        <span class="suggested-action-text">Check API configuration in documentation</span>
+                                        <span class="suggested-action-arrow">→</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
                     <div class="detail-section">
                         <h3>📝 Title</h3>
                         <div class="editable-field">
-                            <input type="text" id="editTitle" value="${escapeHtml(job.title || '')}" 
-                                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+                            <textarea id="editTitle" rows="2" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; resize: vertical;">${escapeHtml(job.title || '')}</textarea>
                         </div>
                     </div>
                     
@@ -1220,14 +1451,36 @@
                     </div>
                     
                     <div class="detail-section">
-                        <h3>ℹ️ Job Info</h3>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; font-size: 13px;">
-                            <div><strong>Status:</strong> <span class="status-badge status-${job.status}">${job.status}</span></div>
-                            <div><strong>Variant:</strong> ${job.variant}</div>
-                            <div><strong>CTA:</strong> ${job.cta_type || 'None'}</div>
-                            <div><strong>Created:</strong> ${formatTime(job.created_at)}</div>
-                            <div><strong>Progress:</strong> ${job.progress_percent || 0}%</div>
-                            <div><strong>Step:</strong> ${job.current_step || '-'}</div>
+                        <h3>ℹ️ Job Information</h3>
+                        <div class="job-info-grid">
+                            <div class="job-info-item">
+                                <div class="job-info-label">Status</div>
+                                <div class="job-info-value">
+                                    <span class="status-badge status-${hasErrors ? 'completed-errors' : job.status}">
+                                        ${hasErrors ? '⚠ Completed with Errors' : job.status}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="job-info-item">
+                                <div class="job-info-label">Variant</div>
+                                <div class="job-info-value">${job.variant === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode'}</div>
+                            </div>
+                            <div class="job-info-item">
+                                <div class="job-info-label">CTA Type</div>
+                                <div class="job-info-value">${job.cta_type || 'None'}</div>
+                            </div>
+                            <div class="job-info-item">
+                                <div class="job-info-label">Created</div>
+                                <div class="job-info-value">${formatTime(job.created_at)}</div>
+                            </div>
+                            <div class="job-info-item">
+                                <div class="job-info-label">Progress</div>
+                                <div class="job-info-value">${completedBrands}/${totalBrands} brands (${Math.round((completedBrands/totalBrands)*100) || 0}%)</div>
+                            </div>
+                            <div class="job-info-item">
+                                <div class="job-info-label">Current Step</div>
+                                <div class="job-info-value">${job.current_step || 'Idle'}</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -1235,28 +1488,45 @@
                         <h3>🖼️ Brand Outputs</h3>
                         <div class="brand-outputs">
                             ${(job.brands || []).map(brand => {
-                                const output = (job.brand_outputs || {})[brand] || {};
+                                const output = brandOutputs[brand] || {};
+                                const brandStatus = output.status || 'pending';
+                                const brandError = output.error || output.error_message;
+                                const brandDisplayName = brand.replace('college', ' College');
+                                
                                 return `
-                                    <div class="brand-output-card">
+                                    <div class="brand-output-card status-${brandStatus}">
                                         <div class="brand-output-header">
-                                            <span>${brand}</span>
-                                            <span class="status-badge status-${output.status || 'pending'}" style="font-size: 10px; padding: 2px 8px;">
-                                                ${output.status || 'pending'}
+                                            <span>${brandDisplayName}</span>
+                                            <span class="status-badge status-${brandStatus}" style="font-size: 10px; padding: 3px 10px;">
+                                                ${brandStatus === 'completed' ? '✓ Ready' : 
+                                                  brandStatus === 'failed' ? '✕ Failed' : 
+                                                  brandStatus === 'generating' ? '◉ Generating' : '○ Pending'}
                                             </span>
                                         </div>
                                         <div class="brand-output-preview">
                                             ${output.thumbnail_path ? 
-                                                `<img src="${output.thumbnail_path}" alt="Thumbnail">` : 
-                                                `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #888;">No preview</div>`
+                                                `<img src="${output.thumbnail_path}?t=${Date.now()}" alt="Thumbnail" onerror="this.parentElement.innerHTML='<div class=\\'no-preview\\'><span class=\\'no-preview-icon\\'>🖼️</span><span>Preview unavailable</span></div>'">` : 
+                                                `<div class="no-preview">
+                                                    <span class="no-preview-icon">${brandStatus === 'failed' ? '❌' : '🎬'}</span>
+                                                    <span>${brandStatus === 'failed' ? 'Generation failed' : 'No preview yet'}</span>
+                                                </div>`
                                             }
                                         </div>
+                                        ${brandStatus === 'failed' && brandError ? `
+                                            <div class="brand-output-error">
+                                                <div class="brand-output-error-title">
+                                                    <span>⚠️</span> Error Log
+                                                </div>
+                                                <div class="brand-output-error-message">${escapeHtml(brandError)}</div>
+                                            </div>
+                                        ` : ''}
                                         <div class="brand-output-actions">
-                                            <button class="btn-small btn-regenerate" onclick="regenerateBrand('${job.job_id}', '${brand}')">
-                                                🔄 Regen
+                                            <button class="btn-small btn-regenerate" onclick="event.stopPropagation(); regenerateBrand('${job.job_id}', '${brand}')" title="Regenerate this brand">
+                                                🔄 Regenerate
                                             </button>
-                                            ${output.video_path ? `
-                                                <a class="btn-small btn-download" href="${output.video_path}" download style="text-decoration: none;">
-                                                    📥 Video
+                                            ${brandStatus === 'completed' && output.video_path ? `
+                                                <a class="btn-small btn-download" href="${output.video_path}" download style="text-decoration: none;" title="Download video">
+                                                    📥 Download
                                                 </a>
                                             ` : ''}
                                         </div>
@@ -1271,8 +1541,38 @@
                 
             } catch (error) {
                 console.error('Failed to load job:', error);
-                alert('Failed to load job details');
+                showToast('Error', 'Failed to load job details', 'error');
             }
+        }
+        
+        // Regenerate only failed brands
+        async function regenerateFailedBrands() {
+            if (!currentJob) return;
+            
+            const brandOutputs = currentJob.brand_outputs || {};
+            const failedBrands = (currentJob.brands || []).filter(b => 
+                (brandOutputs[b] || {}).status === 'failed'
+            );
+            
+            if (failedBrands.length === 0) {
+                showToast('Info', 'No failed brands to regenerate', 'info');
+                return;
+            }
+            
+            showToast('Regenerating', `Starting regeneration for ${failedBrands.length} failed brand(s)...`, 'info');
+            
+            for (const brand of failedBrands) {
+                try {
+                    await fetch(`/jobs/${currentJob.job_id}/regenerate/${brand}`, { method: 'POST' });
+                } catch (error) {
+                    console.error(`Failed to regenerate ${brand}:`, error);
+                }
+            }
+            
+            setTimeout(() => {
+                openJobDetail(currentJob.job_id);
+                loadJobs();
+            }, 2000);
         }
         
         function closeModal() {
@@ -1336,13 +1636,20 @@
             if (!currentJob) return;
             
             // Save changes first
-            const title = document.getElementById('editTitle').value;
+            const titleEl = document.getElementById('editTitle');
+            const title = titleEl ? titleEl.value : currentJob.title;
             const contentInputs = document.querySelectorAll('.line-input');
-            const contentLines = Array.from(contentInputs).map(input => input.value);
+            const contentLines = contentInputs.length > 0 
+                ? Array.from(contentInputs).map(input => input.value)
+                : currentJob.content_lines;
             
             const btn = document.getElementById('regenerateAllBtn');
-            btn.innerHTML = '<span class="spinner"></span> Regenerating...';
-            btn.disabled = true;
+            if (btn) {
+                btn.innerHTML = '<span class="spinner"></span> Regenerating...';
+                btn.disabled = true;
+            }
+            
+            showToast('Starting Regeneration', 'Preparing to regenerate all brands...', 'info');
             
             try {
                 const response = await fetch(`/jobs/${currentJob.job_id}/regenerate`, {
@@ -1364,8 +1671,10 @@
                 console.error('Failed to regenerate:', error);
                 showToast('Regeneration Failed', 'Could not start regeneration', 'error');
             } finally {
-                btn.innerHTML = '🔄 Regenerate All';
-                btn.disabled = false;
+                if (btn) {
+                    btn.innerHTML = '🔄 Regenerate All';
+                    btn.disabled = false;
+                }
             }
         }
         
