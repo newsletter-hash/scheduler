@@ -74,7 +74,7 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
             
             # Content
             content_title_text_color=hex_to_rgb("#000000"),  # Black
-            content_title_bg_color=hex_to_rgba("#e9f3ed"),  # Light green
+            content_title_bg_color=hex_to_rgba("#dcf6c8"),  # Light green
         ),
         dark_mode=BrandModeColors(
             # Thumbnail
@@ -95,7 +95,7 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
             thumbnail_text_color=hex_to_rgb("#028f7a"),  # Teal
             
             # Content
-            content_title_text_color=hex_to_rgb("#000000"),  # Black
+            content_title_text_color=hex_to_rgb("#ffffff"),  # Black
             content_title_bg_color=hex_to_rgba("#028f7a"),  # Teal
         ),
         dark_mode=BrandModeColors(
@@ -117,8 +117,8 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
             thumbnail_text_color=hex_to_rgb("#00c9ff"),  # Cyan
             
             # Content
-            content_title_text_color=hex_to_rgb("#ffffff"),  # White
-            content_title_bg_color=hex_to_rgba("#00c9ff"),  # Cyan
+            content_title_text_color=hex_to_rgb("#000000"),  # Black
+            content_title_bg_color=hex_to_rgba("#c8eaf6"),  # Cyan
         ),
         dark_mode=BrandModeColors(
             # Thumbnail

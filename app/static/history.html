@@ -1843,6 +1843,12 @@
         }
         
         async function openJobDetail(jobId) {
+            // Navigate to the dedicated job detail page
+            window.location.href = `/job/${jobId}`;
+        }
+        
+        // Keep old modal function for backwards compatibility (renamed)
+        async function openJobDetailModal(jobId) {
             try {
                 const response = await fetch(`/jobs/${jobId}`);
                 const job = await response.json();

@@ -242,6 +242,21 @@ class ImageGenerator:
         import random
         import re
         
+        # ============================================================
+        # BRAND VARIATION SYSTEM
+        # Each brand gets unique content order and subtle font variations
+        # ============================================================
+        
+        # Brand-specific font size adjustments (subtle ±1-2px differences)
+        brand_font_adjustments = {
+            "gymcollege": 0,         # Base size
+            "healthycollege": -1,    # Slightly smaller
+            "vitalitycollege": +1,   # Slightly larger
+            "longevitycollege": -2,  # Even smaller
+        }
+        font_adjustment = brand_font_adjustments.get(self.brand_name, 0)
+        content_font_size = content_font_size + font_adjustment
+        
         # Step 1: Add numbering to ALL lines (including CTA - CTA MUST have a number)
         if len(lines) > 1:
             # Remove any existing numbers and add fresh sequential numbers to ALL lines
@@ -253,25 +268,35 @@ class ImageGenerator:
                 numbered_lines.append(f"{i}. {line_without_number}")
             lines = numbered_lines
         
-        # Step 2: Healthycollege - shuffle content (reorder for variety), keep last line in place
-        if self.brand_name == "healthycollege" and len(lines) > 1:
-            last_line = lines[-1]
-            middle_lines = lines[:-1]
+        # Step 2: ALL brands shuffle content for variety (CTA stays at the end)
+        # Each brand uses a different random seed based on brand name for deterministic but unique shuffle
+        if len(lines) > 2:  # Only shuffle if we have more than 2 lines (content + CTA)
+            last_line = lines[-1]  # CTA always stays at the end
+            content_lines_to_shuffle = lines[:-1]  # All lines except CTA
             
-            # Shuffle middle lines (truly random, not seeded)
-            shuffled_middle = middle_lines.copy()
-            random.shuffle(shuffled_middle)
+            # Use brand name hash as seed for deterministic shuffle per brand
+            # This ensures same brand always gets same order, but different brands get different orders
+            brand_seed = sum(ord(c) for c in self.brand_name)
+            rng = random.Random(brand_seed)
             
-            # Renumber after shuffling (all lines have numbers now)
-            renumbered_middle = []
-            for i, line in enumerate(shuffled_middle, 1):
+            # Shuffle content lines (CTA excluded)
+            shuffled_content = content_lines_to_shuffle.copy()
+            rng.shuffle(shuffled_content)
+            
+            # Renumber after shuffling (all lines have numbers)
+            renumbered_content = []
+            for i, line in enumerate(shuffled_content, 1):
                 line_without_number = re.sub(r'^\d+\.\s*', '', line.strip())
-                renumbered_middle.append(f"{i}. {line_without_number}")
+                renumbered_content.append(f"{i}. {line_without_number}")
             
-            # Last line always gets renumbered too
+            # CTA gets the last number
             last_line_without_number = re.sub(r'^\d+\.\s*', '', last_line.strip())
-            renumbered_last = f"{len(renumbered_middle) + 1}. {last_line_without_number}"
-            lines = renumbered_middle + [renumbered_last]
+            renumbered_last = f"{len(renumbered_content) + 1}. {last_line_without_number}"
+            lines = renumbered_content + [renumbered_last]
+        
+        # ============================================================
+        # END BRAND VARIATION SYSTEM
+        # ============================================================
         
         # Convert title to uppercase
         title_upper = title.upper()

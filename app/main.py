@@ -113,7 +113,15 @@ async def history_page_alt():
     return FileResponse(history_file)
 
 
-@app.get("/health", tags=["health"])
+@app.get("/job/{job_id}", tags=["root"])
+async def job_detail_page(job_id: str):
+    """Serve the job detail page."""
+    static_dir = Path(__file__).parent / "static"
+    detail_file = static_dir / "job-detail.html"
+    return FileResponse(detail_file)
+
+
+@app.get("/health", tags=["root"])
 async def health_check():
     """Simple health check endpoint for Railway."""
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
