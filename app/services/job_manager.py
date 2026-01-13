@@ -133,16 +133,33 @@ class JobManager:
         output_data: Dict[str, Any]
     ) -> Optional[GenerationJob]:
         """Update output data for a specific brand."""
+        import sys
+        print(f"\n📝 update_brand_output called:", flush=True)
+        print(f"   job_id: {job_id}", flush=True)
+        print(f"   brand: {brand}", flush=True)
+        print(f"   output_data: {output_data}", flush=True)
+        sys.stdout.flush()
+        
         job = self.get_job(job_id)
         if not job:
+            print(f"   ❌ Job not found!", flush=True)
             return None
+        
+        print(f"   Current brand_outputs: {job.brand_outputs}", flush=True)
         
         brand_outputs = job.brand_outputs or {}
         brand_outputs[brand] = {**brand_outputs.get(brand, {}), **output_data}
         job.brand_outputs = brand_outputs
         
+        print(f"   Updated brand_outputs: {job.brand_outputs}", flush=True)
+        print(f"   Committing to database...", flush=True)
+        sys.stdout.flush()
+        
         self.db.commit()
         self.db.refresh(job)
+        
+        print(f"   ✓ Database committed. brand_outputs after commit: {job.brand_outputs}", flush=True)
+        sys.stdout.flush()
         return job
     
     def update_job_inputs(
@@ -182,15 +199,18 @@ class JobManager:
         Regenerate images/video for a single brand.
         Uses existing AI background if available (no new API call for dark mode).
         """
-        print(f"\n{'='*60}")
-        print(f"🎨 Starting generation for brand: {brand}")
-        print(f"   Job ID: {job_id}")
-        print(f"{'='*60}")
+        import sys
+        print(f"\n{'='*60}", flush=True)
+        print(f"🎨 regenerate_brand() called", flush=True)
+        print(f"   Brand: {brand}", flush=True)
+        print(f"   Job ID: {job_id}", flush=True)
+        print(f"{'='*60}", flush=True)
+        sys.stdout.flush()
         
         job = self.get_job(job_id)
         if not job:
             error_msg = f"Job not found: {job_id}"
-            print(f"❌ ERROR: {error_msg}")
+            print(f"❌ ERROR: {error_msg}", flush=True)
             return {"success": False, "error": error_msg}
         
         # Use provided values or fall back to job's stored values
@@ -213,32 +233,41 @@ class JobManager:
             reel_path = output_dir / "reels" / f"{reel_id}_reel.png"
             video_path = output_dir / "videos" / f"{reel_id}_video.mp4"
             
-            print(f"📁 Output paths:")
-            print(f"   Thumbnail: {thumbnail_path}")
-            print(f"   Reel: {reel_path}")
-            print(f"   Video: {video_path}")
+            print(f"📁 Output paths:", flush=True)
+            print(f"   Thumbnail: {thumbnail_path}", flush=True)
+            print(f"   Reel: {reel_path}", flush=True)
+            print(f"   Video: {video_path}", flush=True)
+            sys.stdout.flush()
+            
+            # Ensure directories exist
+            thumbnail_path.parent.mkdir(parents=True, exist_ok=True)
+            reel_path.parent.mkdir(parents=True, exist_ok=True)
+            video_path.parent.mkdir(parents=True, exist_ok=True)
+            print(f"   ✓ Directories created/verified", flush=True)
             
             # Create image generator
-            print(f"🔧 Getting brand type for: {brand}")
+            print(f"🔧 Getting brand type for: {brand}", flush=True)
             brand_type = get_brand_type(brand)
-            print(f"   Brand type: {brand_type}")
+            print(f"   Brand type: {brand_type}", flush=True)
+            sys.stdout.flush()
             
             # For dark mode, try to reuse existing AI background
             ai_background_image = None
             if job.variant == "dark" and job.ai_background_path:
-                print(f"🌙 Dark mode - attempting to reuse AI background: {job.ai_background_path}")
+                print(f"🌙 Dark mode - attempting to reuse AI background: {job.ai_background_path}", flush=True)
                 from PIL import Image
                 try:
                     ai_background_image = Image.open(job.ai_background_path)
-                    print(f"   ✓ Loaded existing AI background")
+                    print(f"   ✓ Loaded existing AI background", flush=True)
                 except Exception as e:
-                    print(f"   ⚠️ Could not load existing background: {e}")
-                    print(f"   Will generate new background")
+                    print(f"   ⚠️ Could not load existing background: {e}", flush=True)
+                    print(f"   Will generate new background", flush=True)
             
-            print(f"🎨 Initializing ImageGenerator...")
-            print(f"   Variant: {job.variant}")
-            print(f"   Brand: {brand}")
-            print(f"   AI Prompt: {job.ai_prompt[:100] if job.ai_prompt else 'None'}...")
+            print(f"🎨 Initializing ImageGenerator...", flush=True)
+            print(f"   Variant: {job.variant}", flush=True)
+            print(f"   Brand: {brand}", flush=True)
+            print(f"   AI Prompt: {job.ai_prompt[:100] if job.ai_prompt else 'None'}...", flush=True)
+            sys.stdout.flush()
             
             generator = ImageGenerator(
                 brand_type=brand_type,
@@ -246,36 +275,41 @@ class JobManager:
                 brand_name=brand,
                 ai_prompt=job.ai_prompt
             )
-            print(f"   ✓ ImageGenerator initialized successfully")
+            print(f"   ✓ ImageGenerator initialized successfully", flush=True)
+            sys.stdout.flush()
             
             # If we have a cached background, inject it
             if ai_background_image and job.variant == "dark":
-                print(f"🌙 Injecting cached AI background")
+                print(f"🌙 Injecting cached AI background", flush=True)
                 generator._ai_background = ai_background_image
             
             # Generate thumbnail
-            print(f"\n🖼️  Step 1/3: Generating thumbnail...")
+            print(f"\n🖼️  Step 1/3: Generating thumbnail...", flush=True)
+            sys.stdout.flush()
             generator.generate_thumbnail(use_title, thumbnail_path)
-            print(f"   ✓ Thumbnail saved: {thumbnail_path}")
+            print(f"   ✓ Thumbnail saved: {thumbnail_path}", flush=True)
             
             # Generate reel image
-            print(f"\n🎨 Step 2/3: Generating reel image...")
-            print(f"   Title: {use_title[:50]}...")
-            print(f"   Lines: {len(use_lines)} content lines")
-            print(f"   CTA: {job.cta_type}")
+            print(f"\n🎨 Step 2/3: Generating reel image...", flush=True)
+            print(f"   Title: {use_title[:50]}...", flush=True)
+            print(f"   Lines: {len(use_lines)} content lines", flush=True)
+            print(f"   CTA: {job.cta_type}", flush=True)
+            sys.stdout.flush()
             generator.generate_reel_image(
                 title=use_title,
                 lines=use_lines,
                 output_path=reel_path,
                 cta_type=job.cta_type
             )
-            print(f"   ✓ Reel image saved: {reel_path}")
+            print(f"   ✓ Reel image saved: {reel_path}", flush=True)
             
             # Generate video
-            print(f"\n🎬 Step 3/3: Generating video...")
+            print(f"\n🎬 Step 3/3: Generating video...", flush=True)
+            sys.stdout.flush()
             video_gen = VideoGenerator()
             video_gen.generate_reel_video(reel_path, video_path)
-            print(f"   ✓ Video saved: {video_path}")
+            print(f"   ✓ Video saved: {video_path}", flush=True)
+            sys.stdout.flush()
             
             # Update brand output
             self.update_brand_output(job_id, brand, {
@@ -287,9 +321,10 @@ class JobManager:
                 "regenerated_at": datetime.utcnow().isoformat()
             })
             
-            print(f"\n{'='*60}")
-            print(f"✅ SUCCESS: {brand.upper()} generation completed!")
-            print(f"{'='*60}\n")
+            print(f"\n{'='*60}", flush=True)
+            print(f"✅ SUCCESS: {brand.upper()} generation completed!", flush=True)
+            print(f"{'='*60}\n", flush=True)
+            sys.stdout.flush()
             
             return {
                 "success": True,
@@ -311,14 +346,15 @@ class JobManager:
                 "traceback": traceback.format_exc()
             }
             
-            print(f"\n{'='*60}")
-            print(f"❌ GENERATION FAILED FOR {brand.upper()}")
-            print(f"{'='*60}")
-            print(f"Error Type: {error_details['type']}")
-            print(f"Error Message: {error_details['message']}")
-            print(f"\nFull Traceback:")
-            print(error_details['traceback'])
-            print(f"{'='*60}\n")
+            print(f"\n{'='*60}", flush=True)
+            print(f"❌ GENERATION FAILED FOR {brand.upper()}", flush=True)
+            print(f"{'='*60}", flush=True)
+            print(f"Error Type: {error_details['type']}", flush=True)
+            print(f"Error Message: {error_details['message']}", flush=True)
+            print(f"\nFull Traceback:", flush=True)
+            print(error_details['traceback'], flush=True)
+            print(f"{'='*60}\n", flush=True)
+            sys.stdout.flush()
             
             # Store detailed error in database
             error_msg = f"{error_details['type']}: {error_details['message']}"
@@ -336,52 +372,75 @@ class JobManager:
         This is the main entry point for job execution.
         Checks for cancellation between each brand.
         """
-        print(f"\n🎬 process_job called for: {job_id}")
+        import sys
+        print(f"\n🎬 process_job called for: {job_id}", flush=True)
+        sys.stdout.flush()
         
         job = self.get_job(job_id)
         if not job:
             error_msg = f"Job not found: {job_id}"
-            print(f"❌ {error_msg}")
+            print(f"❌ {error_msg}", flush=True)
             return {"success": False, "error": error_msg}
         
-        print(f"   Job found - brands: {job.brands}, variant: {job.variant}")
+        print(f"   Job found - brands: {job.brands}, variant: {job.variant}", flush=True)
+        print(f"   Title: {job.title[:50] if job.title else 'None'}...", flush=True)
+        print(f"   Content lines: {len(job.content_lines or [])}", flush=True)
+        sys.stdout.flush()
         
         # Check if already cancelled before starting
         if job.status == "cancelled":
-            print(f"❌ Job was cancelled")
+            print(f"❌ Job was cancelled", flush=True)
             return {"success": False, "error": "Job was cancelled"}
         
         # Validate brands list
         if not job.brands or len(job.brands) == 0:
             error_msg = "No brands specified for job"
-            print(f"❌ {error_msg}")
+            print(f"❌ {error_msg}", flush=True)
             self.update_job_status(job_id, "failed", error_message=error_msg)
             return {"success": False, "error": error_msg}
         
+        print(f"📝 Updating job status to 'generating'...", flush=True)
         self.update_job_status(job_id, "generating", "Starting generation...", 0)
+        print(f"   ✓ Status updated", flush=True)
         
         results = {}
         total_brands = len(job.brands)
         ai_background_saved = False
         
-        print(f"   Processing {total_brands} brands...")
+        print(f"   Processing {total_brands} brands: {job.brands}", flush=True)
+        sys.stdout.flush()
         
         try:
             for i, brand in enumerate(job.brands):
+                print(f"\n{'='*40}", flush=True)
+                print(f"🔄 Processing brand {i+1}/{total_brands}: {brand}", flush=True)
+                print(f"{'='*40}", flush=True)
+                sys.stdout.flush()
+                
                 # Check for cancellation before each brand
                 job = self.get_job(job_id)
                 if job.status == "cancelled":
+                    print(f"   ⚠️ Job cancelled, stopping", flush=True)
                     return {"success": False, "error": "Job was cancelled", "results": results}
                 
                 progress = int((i / total_brands) * 100)
+                print(f"   📊 Progress: {progress}%", flush=True)
                 self.update_job_status(
                     job_id, "generating",
                     f"Generating {brand}...",
                     progress
                 )
                 
+                print(f"   🎨 Calling regenerate_brand({job_id}, {brand})...", flush=True)
+                sys.stdout.flush()
+                
                 result = self.regenerate_brand(job_id, brand)
                 results[brand] = result
+                
+                print(f"   📋 Result for {brand}: {result.get('success', False)}", flush=True)
+                if not result.get('success'):
+                    print(f"   ❌ Error: {result.get('error', 'Unknown')}", flush=True)
+                sys.stdout.flush()
                 
                 # Save AI background path from first dark mode generation
                 if not ai_background_saved and job.variant == "dark":
@@ -399,12 +458,13 @@ class JobManager:
             if job.status == "cancelled":
                 return {"success": False, "error": "Job was cancelled", "results": results}
             
-            print(f"\n   Processing complete. Results: {results}")
+            print(f"\n   Processing complete. Results: {results}", flush=True)
+            sys.stdout.flush()
             
             # Handle empty results (should not happen but just in case)
             if not results:
                 error_msg = "No brands were processed - results are empty"
-                print(f"❌ {error_msg}")
+                print(f"❌ {error_msg}", flush=True)
                 self.update_job_status(job_id, "failed", error_message=error_msg)
                 return {"success": False, "error": error_msg}
             
@@ -412,7 +472,8 @@ class JobManager:
             all_success = all(r.get("success", False) for r in results.values())
             any_success = any(r.get("success", False) for r in results.values())
             
-            print(f"   all_success={all_success}, any_success={any_success}")
+            print(f"   all_success={all_success}, any_success={any_success}", flush=True)
+            sys.stdout.flush()
             
             if all_success:
                 self.update_job_status(job_id, "completed", "All brands generated!", 100)

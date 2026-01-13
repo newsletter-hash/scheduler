@@ -57,6 +57,11 @@ class ImageGenerator:
             brand_name: Brand name ("gymcollege", "healthycollege", or "vitalitycollege")
             ai_prompt: Custom AI prompt for dark mode backgrounds (optional)
         """
+        import sys
+        print(f"🎨 ImageGenerator.__init__() called", flush=True)
+        print(f"   brand_type={brand_type}, variant={variant}, brand_name={brand_name}", flush=True)
+        sys.stdout.flush()
+        
         self.brand_config = get_brand_config(brand_type)
         self.width = REEL_WIDTH
         self.height = REEL_HEIGHT
@@ -65,13 +70,21 @@ class ImageGenerator:
         self.ai_prompt = ai_prompt
         self._ai_background = None  # Cache AI background for dark mode reuse
         
+        print(f"   Loading brand colors...", flush=True)
         # Load brand-specific colors from centralized configuration
         self.brand_colors = get_brand_colors(brand_name, variant)
+        print(f"   ✓ Brand colors loaded: {list(self.brand_colors.keys()) if self.brand_colors else 'None'}", flush=True)
         
         # Pre-generate AI background for dark mode (one image for both thumbnail and content)
         if variant == "dark":
+            print(f"   🌙 Dark mode - generating AI background...", flush=True)
+            sys.stdout.flush()
             ai_generator = AIBackgroundGenerator()
             self._ai_background = ai_generator.generate_background(self.brand_name, self.ai_prompt)
+            print(f"   ✓ AI background generated", flush=True)
+        
+        print(f"   ✓ ImageGenerator initialized successfully", flush=True)
+        sys.stdout.flush()
     
     def generate_thumbnail(
         self,
@@ -93,13 +106,23 @@ class ImageGenerator:
         Returns:
             Path to the generated thumbnail
         """
+        import sys
+        print(f"   🖼️  generate_thumbnail() called", flush=True)
+        print(f"      title: {title[:50]}...", flush=True)
+        print(f"      output_path: {output_path}", flush=True)
+        sys.stdout.flush()
+        
         # Load or generate thumbnail background based on variant
         if self.variant == "light":
             # Light mode: use template images
             template_path = Path(__file__).resolve().parent.parent.parent / "assets" / "templates" / self.brand_name / "light mode" / "thumbnail_template.png"
+            print(f"      📂 Loading template: {template_path}", flush=True)
+            print(f"      Template exists: {template_path.exists()}", flush=True)
             image = Image.open(template_path)
+            print(f"      ✓ Template loaded", flush=True)
         else:
             # Dark mode: use cached AI background with overlay
+            print(f"      🌙 Using AI background for dark mode", flush=True)
             image = self._ai_background.copy()
             
             # Apply 55% dark overlay for thumbnail (darker for better white text visibility)
@@ -107,6 +130,7 @@ class ImageGenerator:
             image = image.convert('RGBA')
             image = Image.alpha_composite(image, overlay)
             image = image.convert('RGB')
+            print(f"      ✓ Dark overlay applied", flush=True)
             
         draw = ImageDraw.Draw(image)
         
@@ -148,6 +172,8 @@ class ImageGenerator:
         # Save thumbnail
         output_path.parent.mkdir(parents=True, exist_ok=True)
         image.save(output_path)
+        print(f"      ✓ Thumbnail saved to {output_path}", flush=True)
+        sys.stdout.flush()
         
         return output_path
     

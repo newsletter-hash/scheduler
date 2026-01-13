@@ -45,35 +45,58 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 def process_job_async(job_id: str):
     """Background task to process a job."""
     import traceback
-    print(f"\n{'='*60}")
-    print(f"🚀 STARTING BACKGROUND JOB PROCESSING: {job_id}")
-    print(f"{'='*60}")
+    import sys
+    
+    # Force flush ALL print statements
+    print(f"\n{'='*60}", flush=True)
+    print(f"🚀 BACKGROUND TASK STARTED", flush=True)
+    print(f"   Job ID: {job_id}", flush=True)
+    print(f"   Timestamp: {datetime.now().isoformat()}", flush=True)
+    print(f"{'='*60}", flush=True)
+    sys.stdout.flush()
     
     try:
+        print(f"📂 Opening database session...", flush=True)
         with get_db_session() as db:
+            print(f"   ✓ Database session opened", flush=True)
+            
+            print(f"🔧 Creating JobManager...", flush=True)
             manager = JobManager(db)
+            print(f"   ✓ JobManager created", flush=True)
+            
+            print(f"🎬 Calling process_job({job_id})...", flush=True)
+            sys.stdout.flush()
+            
             result = manager.process_job(job_id)
-            print(f"\n{'='*60}")
-            print(f"✅ JOB PROCESSING COMPLETED: {job_id}")
-            print(f"   Result: {result}")
-            print(f"{'='*60}\n")
+            
+            print(f"\n{'='*60}", flush=True)
+            print(f"✅ JOB PROCESSING COMPLETED", flush=True)
+            print(f"   Job ID: {job_id}", flush=True)
+            print(f"   Result: {result}", flush=True)
+            print(f"{'='*60}\n", flush=True)
+            sys.stdout.flush()
+            
     except Exception as e:
         error_msg = f"{type(e).__name__}: {str(e)}"
-        print(f"\n{'='*60}")
-        print(f"❌ CRITICAL ERROR IN BACKGROUND JOB: {job_id}")
-        print(f"{'='*60}")
-        print(f"Error: {error_msg}")
-        print(f"\nFull Traceback:")
+        print(f"\n{'='*60}", flush=True)
+        print(f"❌ CRITICAL ERROR IN BACKGROUND JOB", flush=True)
+        print(f"   Job ID: {job_id}", flush=True)
+        print(f"   Error: {error_msg}", flush=True)
+        print(f"\nFull Traceback:", flush=True)
         traceback.print_exc()
-        print(f"{'='*60}\n")
+        sys.stdout.flush()
+        print(f"{'='*60}\n", flush=True)
         
         # Try to update job status to failed
         try:
+            print(f"📝 Updating job status to failed...", flush=True)
             with get_db_session() as db:
                 manager = JobManager(db)
                 manager.update_job_status(job_id, "failed", error_message=error_msg)
+            print(f"   ✓ Job status updated", flush=True)
         except Exception as update_error:
-            print(f"❌ Failed to update job status: {update_error}")
+            print(f"   ❌ Failed to update job status: {update_error}", flush=True)
+        sys.stdout.flush()
 
 
 @router.post(
