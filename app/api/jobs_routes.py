@@ -419,3 +419,58 @@ async def delete_job(job_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete job: {str(e)}"
         )
+
+
+@router.post(
+    "/{job_id}/cancel",
+    summary="Cancel a running job"
+)
+async def cancel_job(job_id: str):
+    """
+    Cancel a job that's pending or generating.
+    
+    - Marks job as 'cancelled'
+    - Stops further processing
+    - Deletes partial outputs
+    """
+    try:
+        with get_db_session() as db:
+            manager = JobManager(db)
+            
+            job = manager.get_job(job_id)
+            if not job:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Job not found: {job_id}"
+                )
+            
+            if job.status in ("completed", "cancelled"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot cancel job with status: {job.status}"
+                )
+            
+            # Mark as cancelled
+            manager.update_job_status(
+                job_id=job_id,
+                status="cancelled",
+                current_step="Cancelled by user",
+                error_message="Job cancelled by user"
+            )
+            
+            # Clean up any partial files
+            manager.cleanup_job_files(job_id)
+            
+            return {
+                "status": "cancelled",
+                "job_id": job_id,
+                "message": "Job cancelled successfully"
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to cancel job: {str(e)}"
+        )

@@ -599,7 +599,8 @@
             <form id="reelForm">
                 <div class="form-group">
                     <label for="title">Title</label>
-                    <input type="text" id="title" name="title" placeholder="e.g., Ultimate Rice Guide" required>
+                    <textarea id="title" name="title" rows="2" placeholder="e.g., Ultimate Rice Guide&#10;(Use Enter for line breaks)" required style="resize: vertical; min-height: 50px;"></textarea>
+                    <div class="help-text">Press Enter to add line breaks in the title</div>
                 </div>
                 
                 <div class="form-group">
@@ -1326,7 +1327,7 @@ Chicken — Let it rest after cooking" required></textarea>
             }
         }
         
-        // Form submission
+        // Form submission - Creates a job and redirects to history
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1357,109 +1358,73 @@ Chicken — Let it rest after cooking" required></textarea>
             }
             
             submitBtn.disabled = true;
-            preview.style.display = 'none';
-            document.getElementById('gymcollegePreview').style.display = 'none';
-            document.getElementById('healthycollegePreview').style.display = 'none';
-            document.getElementById('vitalitycollegePreview').style.display = 'none';
-            document.getElementById('longevitycollegePreview').style.display = 'none';
-            document.getElementById('scheduleAllSection').style.display = 'none';
-            currentReels = {};
-            
-            const variantText = currentVariant === 'dark' ? 'AI backgrounds' : 'light mode';
-            showLoading('Generating Captions', `Creating AI captions with ${ctaType.replace('_', ' ')} CTA...`);
+            showLoading('Creating Job', 'Queueing reel generation...');
             
             try {
-                // First, generate AI captions for all brands
-                const captionResponse = await fetch('/reels/generate-captions', {
+                // Create a job in the pipeline
+                const response = await fetch('/jobs/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         title: title,
                         content_lines: lines,
-                        cta_type: ctaType
+                        brands: brands,
+                        variant: currentVariant,
+                        ai_prompt: aiPrompt || null,
+                        cta_type: ctaType,
+                        user_id: 'web_user'
                     })
                 });
                 
-                let generatedCaptions = {};
-                let firstParagraphs = {};
-                
-                if (captionResponse.ok) {
-                    const captionResult = await captionResponse.json();
-                    generatedCaptions = captionResult.captions;
-                    firstParagraphs = captionResult.first_paragraphs;
-                    showToast('Captions Ready!', 'AI captions generated', 'success', 2000);
-                } else {
-                    console.warn('Caption generation failed, using fallback');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to create job');
                 }
                 
-                showLoading('Generating Reels', `Creating ${brands.length} reel(s) with ${variantText}...`);
-                
-                for (let i = 0; i < brands.length; i++) {
-                    const brand = brands[i];
-                    const brandName = getBrandName(brand);
-                    
-                    showLoading(`Generating ${brandName}`, `Creating reel ${i + 1} of ${brands.length}...`);
-                    
-                    const response = await fetch('/reels/generate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: title,
-                            content_lines: lines,
-                            brand: brand,
-                            variant: currentVariant,
-                            ai_prompt: aiPrompt,
-                            cta_type: ctaType
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.detail || 'Failed to generate reel');
-                    }
-                    
-                    const result = await response.json();
-                    currentReels[brand] = result.reel_id;
-                    
-                    const timestamp = new Date().getTime();
-                    document.getElementById('thumbnailImg' + brand).src = result.thumbnail_path + '?t=' + timestamp;
-                    
-                    const videoElement = document.getElementById('reelVideo' + brand);
-                    const videoSource = document.getElementById('videoSource' + brand);
-                    videoSource.src = result.video_path + '?t=' + timestamp;
-                    videoElement.load();
-                    
-                    // Display captions
-                    const brandKey = brand.charAt(0).toUpperCase() + brand.slice(1);
-                    const captionTextarea = document.getElementById('caption' + brandKey);
-                    const fullCaptionInput = document.getElementById('fullCaption' + brandKey);
-                    
-                    if (captionTextarea && firstParagraphs[brand]) {
-                        captionTextarea.value = firstParagraphs[brand];
-                    }
-                    if (fullCaptionInput && generatedCaptions[brand]) {
-                        fullCaptionInput.value = generatedCaptions[brand];
-                    }
-                    
-                    document.getElementById(brand + 'Preview').style.display = 'block';
-                    
-                    showToast(`${brandName} Ready!`, 'Thumbnail and video generated', 'success', 3000);
-                }
+                const result = await response.json();
+                const jobId = result.job_id;
                 
                 hideLoading();
-                preview.style.display = 'block';
                 
-                if (brands.length > 0) {
-                    document.getElementById('scheduleAllSection').style.display = 'block';
-                    await updateScheduleAllPreview();
+                // Show success message with link to history
+                showToast(
+                    '🚀 Job Created!', 
+                    `Job ${jobId} queued for processing. View progress in History.`, 
+                    'success', 
+                    8000
+                );
+                
+                // Clear the form for new input
+                document.getElementById('title').value = '';
+                document.getElementById('content').value = '';
+                document.getElementById('aiPrompt').value = '';
+                
+                // Reset previews
+                preview.style.display = 'none';
+                document.getElementById('gymcollegePreview').style.display = 'none';
+                document.getElementById('healthycollegePreview').style.display = 'none';
+                document.getElementById('vitalitycollegePreview').style.display = 'none';
+                document.getElementById('longevitycollegePreview').style.display = 'none';
+                document.getElementById('scheduleAllSection').style.display = 'none';
+                currentReels = {};
+                
+                // Show a prompt to go to history or stay
+                const goToHistory = confirm(
+                    `Job ${jobId} created!\n\n` +
+                    `The generation is processing in the background.\n\n` +
+                    `Click OK to view progress in History,\n` +
+                    `or Cancel to create another reel.`
+                );
+                
+                if (goToHistory) {
+                    window.location.href = '/history';
                 }
                 
-                showToast('All Reels Generated!', `${brands.length} reel(s) ready. Schedule or publish them!`, 'success', 6000);
-                showStatus('✅ Reels generated successfully!', 'success');
+                showStatus(`✅ Job ${jobId} created and processing!`, 'success');
                 
             } catch (error) {
                 hideLoading();
-                showToast('Generation Failed', error.message, 'error');
+                showToast('Job Creation Failed', error.message, 'error');
                 showStatus('❌ Error: ' + error.message, 'error');
             } finally {
                 submitBtn.disabled = false;

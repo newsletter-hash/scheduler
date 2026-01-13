@@ -273,10 +273,15 @@ class JobManager:
         """
         Process a generation job (generate all brands).
         This is the main entry point for job execution.
+        Checks for cancellation between each brand.
         """
         job = self.get_job(job_id)
         if not job:
             return {"success": False, "error": "Job not found"}
+        
+        # Check if already cancelled before starting
+        if job.status == "cancelled":
+            return {"success": False, "error": "Job was cancelled"}
         
         self.update_job_status(job_id, "generating", "Starting generation...", 0)
         
@@ -286,6 +291,11 @@ class JobManager:
         
         try:
             for i, brand in enumerate(job.brands):
+                # Check for cancellation before each brand
+                job = self.get_job(job_id)
+                if job.status == "cancelled":
+                    return {"success": False, "error": "Job was cancelled", "results": results}
+                
                 progress = int((i / total_brands) * 100)
                 self.update_job_status(
                     job_id, "generating",
@@ -307,6 +317,11 @@ class JobManager:
                         # The background is stored internally in the generator
                         ai_background_saved = True
             
+            # Final cancellation check
+            job = self.get_job(job_id)
+            if job.status == "cancelled":
+                return {"success": False, "error": "Job was cancelled", "results": results}
+            
             # Check if all succeeded
             all_success = all(r.get("success", False) for r in results.values())
             
@@ -326,13 +341,49 @@ class JobManager:
             self.update_job_status(job_id, "failed", error_message=str(e))
             return {"success": False, "error": str(e)}
     
+    def cleanup_job_files(self, job_id: str) -> bool:
+        """Clean up all files associated with a job."""
+        job = self.get_job(job_id)
+        if not job:
+            return False
+        
+        output_dir = Path("output")
+        
+        # Clean up files for each brand
+        for brand, output in (job.brand_outputs or {}).items():
+            reel_id = output.get("reel_id")
+            if reel_id:
+                # Remove thumbnail
+                thumbnail = output_dir / "thumbnails" / f"{reel_id}_thumbnail.png"
+                if thumbnail.exists():
+                    thumbnail.unlink()
+                
+                # Remove reel image
+                reel_img = output_dir / "reels" / f"{reel_id}_reel.png"
+                if reel_img.exists():
+                    reel_img.unlink()
+                
+                # Remove video
+                video = output_dir / "videos" / f"{reel_id}_video.mp4"
+                if video.exists():
+                    video.unlink()
+        
+        # Clean up AI background if exists
+        if job.ai_background_path:
+            ai_bg = Path(job.ai_background_path)
+            if ai_bg.exists():
+                ai_bg.unlink()
+        
+        return True
+    
     def delete_job(self, job_id: str) -> bool:
         """Delete a job and its associated files."""
         job = self.get_job(job_id)
         if not job:
             return False
         
-        # Optionally clean up files here
+        # Clean up files first
+        self.cleanup_job_files(job_id)
         
         self.db.delete(job)
         self.db.commit()
