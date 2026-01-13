@@ -305,6 +305,15 @@
             background: #fde68a;
         }
         
+        .quick-action-btn.delete {
+            background: var(--error-light);
+            color: var(--error-dark);
+        }
+        
+        .quick-action-btn.delete:hover {
+            background: #fecaca;
+        }
+        
         /* Jobs List */
         .jobs-grid {
             display: grid;
@@ -1392,6 +1401,7 @@
                 <li><a href="/">🎬 Generate</a></li>
                 <li><a href="/history.html" class="active">📋 History</a></li>
                 <li><a href="/scheduled.html">📅 Scheduled</a></li>
+                <li><a href="/docs" target="_blank">📚 API Docs</a></li>
             </ul>
         </div>
     </nav>
@@ -1729,9 +1739,11 @@
                 // Title handling with full title for tooltip
                 const fullTitle = (job.title || 'Untitled').replace(/\n/g, ' • ');
                 const titleDisplay = (job.title || 'Untitled').split('\n')[0];
-                const hasMoreLines = (job.title || '').includes('\n');
+                const titleLines = (job.title || '').split('\n').length;
+                const hasMoreLines = titleLines > 1;
                 const titleTruncated = titleDisplay.length > 40;
                 const displayTitle = titleTruncated ? titleDisplay.substring(0, 40) + '...' : titleDisplay;
+                const extraLinesText = hasMoreLines ? `<span class="title-multiline-indicator">+${titleLines - 1} lines</span>` : '';
                 
                 // Build brand badges with status dots
                 const brandBadges = (job.brands || []).map(b => {
@@ -1751,12 +1763,9 @@
                 );
                 const firstVideoPath = firstCompletedBrand ? (brandOutputs[firstCompletedBrand] || {}).video_path : null;
                 
-                // Quick actions for completed jobs
-                const quickActions = job.status === 'completed' || hasErrors ? `
+                // Quick actions - only download and delete, no useless preview
+                const quickActions = `
                     <div class="job-quick-actions">
-                        <button class="quick-action-btn preview" onclick="event.stopPropagation(); openJobDetail('${job.job_id}')" title="View details">
-                            👁️ Preview
-                        </button>
                         ${firstVideoPath ? `
                             <a class="quick-action-btn download" href="${firstVideoPath}" download onclick="event.stopPropagation()" title="Download first video">
                                 📥 Download
@@ -1764,18 +1773,33 @@
                         ` : ''}
                         ${hasErrors || failedBrands > 0 ? `
                             <button class="quick-action-btn regen" onclick="event.stopPropagation(); quickRegenerateFailed('${job.job_id}')" title="Regenerate failed">
-                                🔄 Retry Failed
+                                🔄 Retry
                             </button>
                         ` : ''}
+                        <button class="quick-action-btn delete" onclick="event.stopPropagation(); deleteJob('${job.job_id}')" title="Delete this job">
+                            🗑️ Delete
+                        </button>
                     </div>
-                ` : '';
+                `;
+                
+                // Determine the REAL status based on brand outputs
+                let realStatus = job.status;
+                let realStatusClass = statusClass;
+                let realStatusLabel = statusLabel;
+                
+                // If status says completed but no brands are actually completed, it failed
+                if (job.status === 'completed' && completedBrands === 0 && totalBrands > 0) {
+                    realStatus = 'failed';
+                    realStatusClass = 'failed';
+                    realStatusLabel = '<span style="font-size: 14px;">✕</span> Failed';
+                }
                 
                 return `
-                <div class="job-card ${job.status === 'failed' ? 'job-card-failed' : ''} ${hasErrors ? 'job-card-errors' : ''}" onclick="openJobDetail('${job.job_id}')">
+                <div class="job-card ${realStatus === 'failed' ? 'job-card-failed' : ''} ${hasErrors ? 'job-card-errors' : ''}" onclick="openJobDetail('${job.job_id}')">
                     <div class="job-id">${job.job_id}</div>
                     <div class="job-info">
                         <div class="job-title" ${(hasMoreLines || titleTruncated) ? `title="${escapeHtml(fullTitle)}"` : ''}>
-                            ${escapeHtml(displayTitle)}${hasMoreLines ? '<span class="title-multiline-indicator">+${(job.title.split("\\n").length - 1)} lines</span>' : ''}
+                            ${escapeHtml(displayTitle)}${extraLinesText}
                         </div>
                         <div class="job-meta">
                             <span class="meta-variant ${job.variant}">${job.variant === 'dark' ? '🌙' : '☀️'} ${job.variant}</span>
@@ -1788,7 +1812,7 @@
                                 ${escapeHtml(job.current_step)}
                             </div>
                         ` : ''}
-                        ${(job.status === 'failed' || hasErrors) && job.error_message ? `
+                        ${(realStatus === 'failed' || hasErrors) && job.error_message ? `
                             <div class="job-error">
                                 <span>⚠️ ${escapeHtml(job.error_message.substring(0, 80))}${job.error_message.length > 80 ? '...' : ''}</span>
                             </div>
@@ -1800,7 +1824,7 @@
                     </div>
                     <div class="job-status">
                         <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
-                            <span class="status-badge status-${statusClass}">${statusLabel}</span>
+                            <span class="status-badge status-${realStatusClass}">${realStatusLabel}</span>
                             ${canCancel ? `
                                 <button class="btn-cancel" onclick="event.stopPropagation(); cancelJob('${job.job_id}')" title="Cancel this job">
                                     ✕
@@ -2158,6 +2182,30 @@
             } catch (error) {
                 console.error('Quick regenerate failed:', error);
                 showToast('Error', 'Failed to regenerate brands', 'error');
+            }
+        }
+        
+        // Delete a job
+        async function deleteJob(jobId) {
+            if (!confirm(`Are you sure you want to delete job ${jobId}? This cannot be undone.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/jobs/${jobId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete job');
+                }
+                
+                showToast('Deleted', `Job ${jobId} has been deleted`, 'success');
+                loadJobs();
+                
+            } catch (error) {
+                console.error('Delete failed:', error);
+                showToast('Error', 'Failed to delete job', 'error');
             }
         }
         
