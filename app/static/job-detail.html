@@ -603,12 +603,24 @@
             const fullTitle = currentJob.title || 'Untitled';
             document.getElementById('jobTitle').textContent = fullTitle;
             
-            // Hide regenerate all button if job is generating
+            // Disable buttons if job is generating
+            const isGenerating = currentJob.status === 'generating' || currentJob.status === 'pending';
+            
             const regenerateBtn = document.getElementById('regenerateAllBtn');
-            if (currentJob.status === 'generating' || currentJob.status === 'pending') {
+            const editTitleBtn = document.querySelector('button[onclick="openEditTitleModal()"]');
+            const deleteBtn = document.querySelector('button[onclick="deleteJob()"]');
+            const scheduleAllBtn = document.querySelector('button[onclick="scheduleAllBrands()"]');
+            
+            if (isGenerating) {
                 regenerateBtn.style.display = 'none';
+                if (editTitleBtn) editTitleBtn.disabled = true;
+                if (deleteBtn) deleteBtn.disabled = true;
+                if (scheduleAllBtn) scheduleAllBtn.disabled = true;
             } else {
                 regenerateBtn.style.display = 'inline-flex';
+                if (editTitleBtn) editTitleBtn.disabled = false;
+                if (deleteBtn) deleteBtn.disabled = false;
+                if (scheduleAllBtn) scheduleAllBtn.disabled = false;
             }
             
             // Status badge
@@ -728,6 +740,21 @@
                         <div class="brand-actions">
                             <button class="btn btn-primary" onclick="regenerateBrand('${brand}')">
                                 🔄 Retry Generation
+                            </button>
+                        </div>
+                    `;
+                } else if (output.status === 'generating') {
+                    // Show disabled buttons during generation
+                    actions = `
+                        <div class="brand-actions">
+                            <button class="btn btn-secondary" disabled>
+                                ⬇️ Download
+                            </button>
+                            <button class="btn btn-success" disabled>
+                                📅 Schedule
+                            </button>
+                            <button class="btn btn-secondary" disabled>
+                                🔄 Regenerate
                             </button>
                         </div>
                     `;
@@ -903,6 +930,9 @@
         // Schedule all brands
         async function scheduleAllBrands() {
             try {
+                // Fetch fresh data first to ensure we have latest state
+                await loadJob();
+                
                 const completedBrands = Object.entries(currentJob.brand_outputs || {})
                     .filter(([_, output]) => output.status === 'completed')
                     .map(([brand, _]) => brand);
@@ -991,6 +1021,14 @@
             try {
                 showToast('Regenerating all brands...', 'success');
                 
+                // Immediately update UI to show all brands as generating
+                for (const brand of currentJob.brands || []) {
+                    if (currentJob.brand_outputs[brand]) {
+                        currentJob.brand_outputs[brand].status = 'generating';
+                    }
+                }
+                renderBrandSections();
+                
                 const response = await fetch(`/jobs/${jobId}/regenerate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
@@ -1005,6 +1043,7 @@
             } catch (error) {
                 console.error('Error regenerating:', error);
                 showToast('Failed to regenerate all', 'error');
+                loadJob(); // Reload to restore correct state
             }
         }
         
