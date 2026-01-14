@@ -160,15 +160,6 @@ class ImageGenerator:
             draw.text((x, title_y), line, font=title_font, fill=text_color)
             title_y += line_height + LINE_SPACING
         
-        # Add brand name at bottom of thumbnail (33px from bottom, 20px font)
-        brand_text = get_brand_display_name(self.brand_name)
-        brand_font = load_font(FONT_BOLD, 20)  # 20px font size
-        brand_width, brand_height = get_text_dimensions(brand_text, brand_font)
-        brand_x = (self.width - brand_width) // 2  # Center horizontally
-        brand_y = self.height - 33 - brand_height  # 33px from bottom
-        # Use the brand's thumbnail text color for the brand name
-        draw.text((brand_x, brand_y), brand_text, font=brand_font, fill=text_color)
-        
         # Save thumbnail
         output_path.parent.mkdir(parents=True, exist_ok=True)
         image.save(output_path)

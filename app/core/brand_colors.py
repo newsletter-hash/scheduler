@@ -52,7 +52,7 @@ BRAND_COLORS: Dict[str, BrandColorConfig] = {
             
             # Content
             content_title_text_color=hex_to_rgb("#000000"),  # Black
-            content_title_bg_color=hex_to_rgba("#c8eaf6"),  # Light blue
+            content_title_bg_color=hex_to_rgba("#c8e1f6"),  # Light blue
         ),
         dark_mode=BrandModeColors(
             # Thumbnail
