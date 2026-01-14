@@ -181,7 +181,7 @@ function History() {
               <div
                 key={job.id}
                 className="card p-4 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/jobs/${job.id}`)}
+                onClick={() => navigate(`/job/${job.id}`)}
               >
                 <div className="flex items-start gap-4">
                   {/* Info */}
@@ -232,7 +232,7 @@ function History() {
                   {/* Actions */}
                   <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                     <button
-                      onClick={() => navigate(`/jobs/${job.id}`)}
+                      onClick={() => navigate(`/job/${job.id}`)}
                       className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
                       title="View details"
                     >

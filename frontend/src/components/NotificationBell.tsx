@@ -78,7 +78,7 @@ function NotificationBell() {
                       <button
                         key={job.id}
                         onClick={() => {
-                          navigate(`/jobs/${job.id}`)
+                          navigate(`/job/${job.id}`)
                           setIsOpen(false)
                         }}
                         className="w-full p-4 text-left hover:bg-gray-50 transition-colors"

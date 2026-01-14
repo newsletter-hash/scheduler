@@ -93,7 +93,7 @@ export const jobsApi = {
     get<Record<BrandName, { next_slot: string; formatted: string }>>(`/jobs/${id}/next-slots`),
   
   updateBrandStatus: async (id: number | string, brand: BrandName, status: string, scheduledTime?: string) => {
-    const job = await post<BackendJob>(`/jobs/${id}/brand-status`, { brand, status, scheduled_time: scheduledTime })
+    const job = await post<BackendJob>(`/jobs/${id}/brand/${brand}/status`, { status, scheduled_time: scheduledTime })
     return transformJob(job)
   },
 }

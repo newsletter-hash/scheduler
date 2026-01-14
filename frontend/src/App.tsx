@@ -11,7 +11,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Generator />} />
         <Route path="history" element={<History />} />
-        <Route path="jobs/:jobId" element={<JobDetail />} />
+        <Route path="job/:jobId" element={<JobDetail />} />
         <Route path="scheduled" element={<Scheduled />} />
       </Route>
     </Routes>

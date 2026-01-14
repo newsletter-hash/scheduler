@@ -460,7 +460,7 @@ function Scheduled() {
                   const jobId = selectedPost.job_id?.includes('_') 
                     ? selectedPost.job_id.split('_')[0]
                     : selectedPost.job_id
-                  navigate(`/jobs/${jobId}`)
+                  navigate(`/job/${jobId}`)
                   setSelectedPost(null)
                 }}
                 className="btn btn-secondary flex-1"
