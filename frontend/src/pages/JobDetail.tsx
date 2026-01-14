@@ -123,13 +123,16 @@ function JobDetail() {
       return
     }
     
+    // Use the generated caption from the output, fallback to a default if missing
+    const caption = output.caption || `${job.title}\n\nGenerated content for ${brand}`
+    
     setSchedulingBrand(brand)
     try {
       await autoSchedule.mutateAsync({
         brand,
         reel_id: output.reel_id,
         variant: job.variant,
-        caption: `Generated from job ${job.id}`,
+        caption: caption,
         video_path: output.video_path,
         thumbnail_path: output.thumbnail_path,
       })
@@ -166,16 +169,20 @@ function JobDetail() {
     
     setSchedulingAll(true)
     let scheduled = 0
+    let failed = 0
     
     for (const brand of completedBrands) {
       const output = job.brand_outputs[brand]
       if (output?.reel_id) {
         try {
+          // Use the generated caption from the output
+          const caption = output.caption || `${job.title}\n\nGenerated content for ${brand}`
+          
           await autoSchedule.mutateAsync({
             brand,
             reel_id: output.reel_id,
             variant: job.variant,
-            caption: `Generated from job ${job.id}`,
+            caption: caption,
             video_path: output.video_path,
             thumbnail_path: output.thumbnail_path,
           })
@@ -185,18 +192,29 @@ function JobDetail() {
             status: 'scheduled',
           })
           scheduled++
-        } catch {
-          console.error(`Failed to schedule ${brand}`)
+        } catch (error) {
+          console.error(`Failed to schedule ${brand}:`, error)
+          failed++
         }
       }
     }
     
-    if (scheduled > 0) {
-      toast.success(`${scheduled} brands scheduled!`)
-      refetch()
-    }
-    
     setSchedulingAll(false)
+    
+    if (scheduled > 0) {
+      const message = failed > 0 
+        ? `✅ ${scheduled} brand${scheduled !== 1 ? 's' : ''} scheduled! ${failed} failed.`
+        : `🎉 All ${scheduled} brand${scheduled !== 1 ? 's' : ''} scheduled successfully!`
+      
+      toast.success(message, { duration: 4000 })
+      
+      // Redirect to scheduled page after a brief moment
+      setTimeout(() => {
+        navigate('/scheduled')
+      }, 1500)
+    } else if (failed > 0) {
+      toast.error('Failed to schedule brands')
+    }
   }
   
   // Handle download
