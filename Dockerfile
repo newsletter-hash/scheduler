@@ -6,13 +6,22 @@ WORKDIR /app
 # Disable Python output buffering for Railway logs
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies for Pillow and other packages
-RUN apt-get update && apt-get install -y \
+# Install system dependencies in smaller batches to avoid resource exhaustion
+# First batch: essential build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Second batch: image processing libraries
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libjpeg-dev \
     zlib1g-dev \
     libfreetype6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Third batch: ffmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
