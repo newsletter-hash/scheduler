@@ -543,13 +543,13 @@
         <div class="modal">
             <h3>✏️ Edit Title</h3>
             <p style="color: var(--gray-600); margin-bottom: 16px; font-size: 13px;">
-                Update the job title for display purposes. This won't regenerate the reels.<br>
-                To regenerate with a new title, use the "🔄 Regenerate" button after saving.
+                Update the title and regenerate all reels with the new text.<br>
+                Existing backgrounds and content will be reused - only the title text changes.
             </p>
             <textarea id="editTitleInput" rows="4" placeholder="Enter title..."></textarea>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeEditTitleModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveTitle()">Save</button>
+                <button class="btn btn-primary" onclick="saveTitle()">Save & Regenerate</button>
             </div>
         </div>
     </div>
@@ -1049,7 +1049,7 @@
             }
             
             try {
-                // Update title only (no regeneration)
+                // Update title in database
                 const response = await fetch(`/jobs/${jobId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -1057,12 +1057,11 @@
                 });
                 
                 if (response.ok) {
-                    // Update local state and UI
-                    currentJob.title = newTitle;
-                    document.getElementById('jobTitle').textContent = newTitle;
-                    
                     closeEditTitleModal();
-                    showToast('Title updated successfully!', 'success');
+                    showToast('Title updated! Regenerating images...', 'success');
+                    
+                    // Regenerate all brands with new title (reuses existing backgrounds)
+                    await regenerateAll();
                 } else {
                     throw new Error('Failed to update');
                 }
