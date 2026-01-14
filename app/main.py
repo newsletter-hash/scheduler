@@ -20,6 +20,12 @@ env_path = Path(__file__).resolve().parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 
+# Detect if React frontend is built
+USE_REACT = os.getenv("USE_REACT", "false").lower() == "true"
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if not FRONTEND_DIR.exists():
+    USE_REACT = False
+
 
 # Create FastAPI application
 app = FastAPI(
@@ -81,44 +87,73 @@ print(f"📁 Static files directory: {output_dir.absolute()}")
 app.mount("/output", StaticFiles(directory=str(output_dir)), name="output")
 
 
-@app.get("/", tags=["root"])
-async def root():
-    """Serve the web interface."""
-    static_dir = Path(__file__).parent / "static"
-    index_file = static_dir / "index.html"
-    return FileResponse(index_file)
+# Serve React frontend if built, otherwise serve legacy HTML files
+if USE_REACT:
+    print(f"⚛️ React frontend enabled: {FRONTEND_DIR}")
+    
+    # Mount React assets
+    if (FRONTEND_DIR / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="react-assets")
+    
+    @app.get("/", tags=["root"])
+    async def root():
+        """Serve React app."""
+        return FileResponse(FRONTEND_DIR / "index.html")
+    
+    @app.get("/history", tags=["root"])
+    @app.get("/history.html", tags=["root"])
+    async def history_page():
+        """Serve React app for history route."""
+        return FileResponse(FRONTEND_DIR / "index.html")
+    
+    @app.get("/scheduled", tags=["root"])
+    async def scheduled_page():
+        """Serve React app for scheduled route."""
+        return FileResponse(FRONTEND_DIR / "index.html")
+    
+    @app.get("/jobs/{job_id}", tags=["root"])
+    @app.get("/job/{job_id}", tags=["root"])
+    async def job_detail_page(job_id: str):
+        """Serve React app for job detail route."""
+        return FileResponse(FRONTEND_DIR / "index.html")
 
-
-@app.get("/scheduled", tags=["root"])
-async def scheduled_page():
-    """Serve the scheduled posts page."""
-    static_dir = Path(__file__).parent / "static"
-    scheduled_file = static_dir / "scheduled.html"
-    return FileResponse(scheduled_file)
-
-
-@app.get("/history.html", tags=["root"])
-async def history_page():
-    """Serve the job history page."""
-    static_dir = Path(__file__).parent / "static"
-    history_file = static_dir / "history.html"
-    return FileResponse(history_file)
-
-
-@app.get("/history", tags=["root"])
-async def history_page_alt():
-    """Serve the job history page (alternate URL)."""
-    static_dir = Path(__file__).parent / "static"
-    history_file = static_dir / "history.html"
-    return FileResponse(history_file)
-
-
-@app.get("/job/{job_id}", tags=["root"])
-async def job_detail_page(job_id: str):
-    """Serve the job detail page."""
-    static_dir = Path(__file__).parent / "static"
-    detail_file = static_dir / "job-detail.html"
-    return FileResponse(detail_file)
+else:
+    print("📄 Using legacy HTML frontend")
+    
+    @app.get("/", tags=["root"])
+    async def root():
+        """Serve the web interface."""
+        static_dir = Path(__file__).parent / "static"
+        index_file = static_dir / "index.html"
+        return FileResponse(index_file)
+    
+    @app.get("/scheduled", tags=["root"])
+    async def scheduled_page():
+        """Serve the scheduled posts page."""
+        static_dir = Path(__file__).parent / "static"
+        scheduled_file = static_dir / "scheduled.html"
+        return FileResponse(scheduled_file)
+    
+    @app.get("/history.html", tags=["root"])
+    async def history_page():
+        """Serve the job history page."""
+        static_dir = Path(__file__).parent / "static"
+        history_file = static_dir / "history.html"
+        return FileResponse(history_file)
+    
+    @app.get("/history", tags=["root"])
+    async def history_page_alt():
+        """Serve the job history page (alternate URL)."""
+        static_dir = Path(__file__).parent / "static"
+        history_file = static_dir / "history.html"
+        return FileResponse(history_file)
+    
+    @app.get("/job/{job_id}", tags=["root"])
+    async def job_detail_page(job_id: str):
+        """Serve the job detail page."""
+        static_dir = Path(__file__).parent / "static"
+        detail_file = static_dir / "job-detail.html"
+        return FileResponse(detail_file)
 
 
 @app.get("/health", tags=["root"])
