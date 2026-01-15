@@ -127,45 +127,63 @@ class DatabaseSchedulerService:
             print(f"   UTC now: {now}")
             print(f"   Local now (naive): {now_naive}")
             
-            # First, let's see ALL scheduled posts for debugging
+            # Show ALL posts for debugging (any status)
+            all_posts = db.query(ScheduledReel).order_by(ScheduledReel.scheduled_time.asc()).limit(50).all()
+            
+            # Group by status
+            by_status = {}
+            for post in all_posts:
+                status = post.status
+                if status not in by_status:
+                    by_status[status] = []
+                by_status[status].append(post)
+            
+            print(f"   📊 Posts by status:")
+            for status, posts in by_status.items():
+                print(f"      {status}: {len(posts)} post(s)")
+                # Show details for non-scheduled posts (publishing, failed, published)
+                if status != "scheduled":
+                    for p in posts[:5]:  # Show first 5
+                        print(f"         - {p.schedule_id}: {p.reel_id} @ {p.scheduled_time}")
+                        if status == "failed" and p.extra_data:
+                            error = p.extra_data.get('error', 'Unknown')
+                            print(f"           Error: {error}")
+            
+            # Get scheduled posts that are DUE
+            print(f"\n   📋 Checking for due 'scheduled' posts...")
             all_scheduled = db.query(ScheduledReel).filter(
                 ScheduledReel.status == "scheduled"
-            ).all()
+            ).order_by(ScheduledReel.scheduled_time.asc()).all()
             
-            print(f"   📋 Total scheduled posts: {len(all_scheduled)}")
-            for sched in all_scheduled:
+            print(f"   Total 'scheduled' posts: {len(all_scheduled)}")
+            due_count = 0
+            for sched in all_scheduled[:10]:  # Show first 10
                 scheduled_time = sched.scheduled_time
-                # Check if scheduled time is timezone aware
-                is_aware = scheduled_time.tzinfo is not None and scheduled_time.tzinfo.utcoffset(scheduled_time) is not None
-                
-                print(f"      - {sched.schedule_id}: scheduled_time={scheduled_time} (aware={is_aware})")
-                print(f"        Reel ID: {sched.reel_id}")
-                
-                # Compare with both UTC and naive times
-                if is_aware:
-                    is_due_utc = scheduled_time <= now
-                    print(f"        Due (vs UTC): {is_due_utc}")
+                is_due = scheduled_time <= now
+                if is_due:
+                    due_count += 1
+                    print(f"      ✅ DUE: {sched.schedule_id}: {sched.reel_id} @ {scheduled_time}")
                 else:
-                    is_due_naive = scheduled_time <= now_naive
-                    is_due_utc = scheduled_time <= now.replace(tzinfo=None)
-                    print(f"        Due (vs local naive): {is_due_naive}")
-                    print(f"        Due (vs UTC naive): {is_due_utc}")
+                    time_until = scheduled_time - now
+                    print(f"      ⏳ {sched.schedule_id}: {sched.reel_id} @ {scheduled_time} (in {time_until})")
+            
+            if due_count == 0:
+                print(f"   ℹ️ No posts are due yet")
             
             # Use FOR UPDATE to lock rows and prevent race conditions
-            # Compare with NAIVE local time since stored times may not have TZ
             pending = db.query(ScheduledReel).filter(
                 and_(
                     ScheduledReel.status == "scheduled",
-                    ScheduledReel.scheduled_time <= now_naive  # Use local naive time
+                    ScheduledReel.scheduled_time <= now
                 )
             ).with_for_update(skip_locked=True).all()
             
-            print(f"   ✅ Found {len(pending)} pending post(s) to publish")
+            print(f"\n   ✅ Found {len(pending)} pending post(s) to publish NOW")
             
             # IMMEDIATELY mark all as "publishing" to prevent duplicate picks
             result = []
             for reel in pending:
-                print(f"      → Marking {reel.schedule_id} as 'publishing'")
+                print(f"      → Marking {reel.schedule_id} ({reel.reel_id}) as 'publishing'")
                 reel.status = "publishing"
                 result.append(reel.to_dict())
             
