@@ -179,6 +179,11 @@ class SocialPublisher:
                 "access_token": self.ig_access_token
             }
             
+            # Add cover/thumbnail URL if provided
+            if thumbnail_url:
+                container_payload["cover_url"] = thumbnail_url
+                print(f"   🖼️ Cover URL: {thumbnail_url}")
+            
             print(f"📸 Creating Instagram Reel resumable container...")
             container_response = requests.post(container_url, data=container_payload, timeout=30)
             container_data = container_response.json()
@@ -513,11 +518,12 @@ class SocialPublisher:
             
             print(f"✅ Video uploaded successfully")
             
-            # Step 2.5: Wait for video processing
+            # Step 2.5: Wait for video processing (but don't wait too long - FB sometimes doesn't update status)
             print(f"⏳ Waiting for Facebook to process video...")
-            max_wait = 120
+            max_wait = 60  # Reduced wait - FB processing can be slow to report
             waited = 0
             check_interval = 5
+            last_status = ""
             
             while waited < max_wait:
                 status_response = requests.get(
@@ -538,14 +544,24 @@ class SocialPublisher:
                 
                 status = status_data.get("status", {})
                 video_status = status.get("video_status", "")
-                processing_status = status.get("processing_phase", {}).get("status", "")
+                uploading_phase = status.get("uploading_phase", {}).get("status", "")
+                processing_phase = status.get("processing_phase", {}).get("status", "")
+                publishing_phase = status.get("publishing_phase", {}).get("status", "")
                 
-                print(f"   📊 Status: {video_status}, Processing: {processing_status} (waited {waited}s)")
+                current_status = f"{video_status}|{uploading_phase}|{processing_phase}|{publishing_phase}"
+                if current_status != last_status:
+                    print(f"   📊 Status: video={video_status}, upload={uploading_phase}, process={processing_phase}, publish={publishing_phase} (waited {waited}s)")
+                    last_status = current_status
                 
-                if processing_status == "complete" or video_status == "ready":
+                # If upload is complete, try to publish regardless of processing status
+                if uploading_phase == "complete" or video_status == "upload_complete":
+                    print(f"✅ Upload confirmed complete, proceeding to publish...")
+                    break
+                
+                if processing_phase == "complete" or video_status == "ready":
                     print(f"✅ Video processing complete!")
                     break
-                elif processing_status == "error":
+                elif processing_phase == "error":
                     error_info = status.get("processing_phase", {}).get("error", {})
                     error_msg = error_info.get("message", "Processing error")
                     print(f"   ❌ Processing error: {error_msg}")
