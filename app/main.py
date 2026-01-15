@@ -139,6 +139,19 @@ async def startup_event():
         print(f"❌ Database init failed: {e}", flush=True)
         # Continue anyway - don't block startup
     
+    # Log brand credentials status at startup (CRITICAL for debugging cross-posting)
+    print("\n🏷️ Brand Credentials Status:", flush=True)
+    from app.core.config import BRAND_CONFIGS, BrandType
+    for brand_type, config in BRAND_CONFIGS.items():
+        ig_status = "✅" if config.instagram_business_account_id else "❌ MISSING"
+        fb_status = "✅" if config.facebook_page_id else "❌ MISSING"
+        token_status = "✅" if config.meta_access_token else "❌ MISSING"
+        print(f"   {config.display_name}:", flush=True)
+        print(f"      Instagram ID: {ig_status} ({config.instagram_business_account_id or 'None'})", flush=True)
+        print(f"      Facebook ID:  {fb_status} ({config.facebook_page_id or 'None'})", flush=True)
+        print(f"      Token:        {token_status}", flush=True)
+    print("", flush=True)
+    
     # Reset any stuck "publishing" posts from previous crashes
     print("🔄 Checking for stuck publishing posts...", flush=True)
     try:
@@ -245,14 +258,26 @@ async def startup_event():
                         
                         # Only mark as published if at least one platform succeeded
                         if success_platforms:
-                            # Collect post IDs for storage
-                            post_ids = {}
+                            # Collect detailed publish results for storage
+                            publish_results = {}
                             for platform in success_platforms:
-                                pid = result[platform].get('post_id') or result[platform].get('video_id')
-                                if pid:
-                                    post_ids[platform] = str(pid)
+                                platform_data = result[platform]
+                                publish_results[platform] = {
+                                    "post_id": str(platform_data.get('post_id') or platform_data.get('video_id', '')),
+                                    "account_id": platform_data.get('account_id') or platform_data.get('page_id', ''),
+                                    "brand_used": platform_data.get('brand_used', 'unknown'),
+                                    "success": True
+                                }
                             
-                            scheduler_service.mark_as_published(schedule_id, post_ids=post_ids)
+                            # Also include failed platforms info
+                            for platform in failed_platforms:
+                                if platform in result:
+                                    publish_results[platform] = {
+                                        "success": False,
+                                        "error": result[platform].get('error', 'Unknown error')
+                                    }
+                            
+                            scheduler_service.mark_as_published(schedule_id, publish_results=publish_results)
                             print(f"   ✅ Successfully published {reel_id} to {', '.join(success_platforms)}")
                             
                             if failed_platforms:

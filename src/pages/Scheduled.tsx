@@ -440,6 +440,56 @@ export function ScheduledPage() {
               </div>
             )}
             
+            {/* Publish Results - Show when published or failed */}
+            {(selectedPost.status === 'published' || selectedPost.status === 'failed') && selectedPost.metadata?.publish_results && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-3">Publish Details</p>
+                <div className="space-y-2">
+                  {Object.entries(selectedPost.metadata.publish_results as Record<string, {success: boolean; post_id?: string; account_id?: string; brand_used?: string; error?: string}>).map(([platform, result]) => (
+                    <div 
+                      key={platform}
+                      className={`flex items-center justify-between p-2 rounded ${
+                        result.success ? 'bg-green-50' : 'bg-red-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`font-medium capitalize ${result.success ? 'text-green-700' : 'text-red-700'}`}>
+                          {platform}
+                        </span>
+                        {result.success && (
+                          <>
+                            <span className="text-xs text-gray-500">→</span>
+                            <span className="text-xs text-gray-600">
+                              {result.brand_used || 'unknown'} ({result.account_id || 'N/A'})
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <div className="text-xs">
+                        {result.success ? (
+                          <span className="text-green-600">
+                            ✓ Posted (ID: {result.post_id?.slice(-8)}...)
+                          </span>
+                        ) : (
+                          <span className="text-red-600">
+                            ✗ {result.error || 'Failed'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Show error message for failed posts */}
+            {selectedPost.status === 'failed' && selectedPost.error && !selectedPost.metadata?.publish_results && (
+              <div className="bg-red-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-red-700 mb-2">Error</p>
+                <p className="text-sm text-red-600">{selectedPost.error}</p>
+              </div>
+            )}
+            
             <div className="flex gap-3 pt-4 border-t border-gray-100">
               <button
                 onClick={() => {

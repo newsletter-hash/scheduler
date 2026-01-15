@@ -886,18 +886,28 @@ async def get_scheduled_posts(user_id: Optional[str] = None):
         # Format the response with human-readable data
         formatted_schedules = []
         for schedule in schedules:
+            metadata = schedule.get("metadata", {})
             formatted_schedules.append({
                 "schedule_id": schedule.get("schedule_id"),
                 "reel_id": schedule.get("reel_id"),
                 "scheduled_time": schedule.get("scheduled_time"),
                 "status": schedule.get("status"),
-                "platforms": schedule.get("metadata", {}).get("platforms", []),
-                "brand": schedule.get("metadata", {}).get("brand", ""),
-                "variant": schedule.get("metadata", {}).get("variant", "light"),
+                "platforms": metadata.get("platforms", []),
+                "brand": metadata.get("brand", ""),
+                "variant": metadata.get("variant", "light"),
                 "caption": schedule.get("caption"),
                 "created_at": schedule.get("created_at"),
                 "published_at": schedule.get("published_at"),
-                "error": schedule.get("publish_error")
+                "publish_error": schedule.get("publish_error"),
+                "metadata": {
+                    "brand": metadata.get("brand"),
+                    "variant": metadata.get("variant"),
+                    "platforms": metadata.get("platforms"),
+                    "video_path": metadata.get("video_path"),
+                    "thumbnail_path": metadata.get("thumbnail_path"),
+                    "post_ids": metadata.get("post_ids"),
+                    "publish_results": metadata.get("publish_results"),
+                }
             })
         
         return {

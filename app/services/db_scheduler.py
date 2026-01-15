@@ -239,12 +239,13 @@ class DatabaseSchedulerService:
             db.commit()
             return True
     
-    def mark_as_published(self, schedule_id: str, post_ids: Dict[str, str] = None) -> None:
+    def mark_as_published(self, schedule_id: str, post_ids: Dict[str, str] = None, publish_results: Dict[str, Any] = None) -> None:
         """Mark a schedule as successfully published.
         
         Args:
             schedule_id: The schedule ID
-            post_ids: Dict of platform -> post_id for storing results
+            post_ids: Dict of platform -> post_id for storing results (legacy)
+            publish_results: Dict of platform -> detailed result info
         """
         with get_db_session() as db:
             scheduled_reel = db.query(ScheduledReel).filter(
@@ -255,12 +256,21 @@ class DatabaseSchedulerService:
                 scheduled_reel.status = "published"
                 scheduled_reel.published_at = datetime.now(timezone.utc)
                 
-                # Store post IDs in metadata if provided
-                if post_ids:
-                    metadata = scheduled_reel.extra_data or {}
-                    metadata['post_ids'] = post_ids
-                    scheduled_reel.extra_data = metadata
+                # Store detailed publish results in metadata
+                metadata = scheduled_reel.extra_data or {}
                 
+                if publish_results:
+                    metadata['publish_results'] = publish_results
+                    # Also extract post_ids for backward compatibility
+                    post_ids = {}
+                    for platform, data in publish_results.items():
+                        if data.get('success') and data.get('post_id'):
+                            post_ids[platform] = data['post_id']
+                    metadata['post_ids'] = post_ids
+                elif post_ids:
+                    metadata['post_ids'] = post_ids
+                
+                scheduled_reel.extra_data = metadata
                 db.commit()
     
     def mark_as_failed(self, schedule_id: str, error: str) -> None:
@@ -406,9 +416,38 @@ class DatabaseSchedulerService:
                 print(f"   ✅ Found brand config: {resolved_config.name}")
                 print(f"   📸 Instagram Account ID: {resolved_config.instagram_business_account_id}")
                 print(f"   📘 Facebook Page ID: {resolved_config.facebook_page_id}")
+                
+                # CRITICAL: Validate that brand has its own credentials
+                if not resolved_config.instagram_business_account_id:
+                    error_msg = f"CRITICAL: Brand '{brand_name}' has no Instagram Business Account ID configured! Cannot publish."
+                    print(f"   ❌ {error_msg}")
+                    return {
+                        "instagram": {"success": False, "error": error_msg, "platform": "instagram"},
+                        "facebook": {"success": False, "error": error_msg, "platform": "facebook"},
+                        "credential_error": True,
+                        "brand": brand_name
+                    }
+                
+                if not resolved_config.facebook_page_id:
+                    error_msg = f"CRITICAL: Brand '{brand_name}' has no Facebook Page ID configured! Cannot publish."
+                    print(f"   ❌ {error_msg}")
+                    return {
+                        "instagram": {"success": False, "error": error_msg, "platform": "instagram"},
+                        "facebook": {"success": False, "error": error_msg, "platform": "facebook"},
+                        "credential_error": True,
+                        "brand": brand_name
+                    }
+                
                 publisher = SocialPublisher(brand_config=resolved_config)
             else:
-                print(f"   ⚠️ Brand '{brand_name}' not found in config, using defaults")
+                error_msg = f"CRITICAL: Brand '{brand_name}' not found in config! Cannot publish to unknown brand."
+                print(f"   ❌ {error_msg}")
+                return {
+                    "instagram": {"success": False, "error": error_msg, "platform": "instagram"},
+                    "facebook": {"success": False, "error": error_msg, "platform": "facebook"},
+                    "credential_error": True,
+                    "brand": brand_name
+                }
         elif user_id:
             # Get user credentials if user_id provided
             with get_db_session() as db:

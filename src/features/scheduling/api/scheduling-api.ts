@@ -42,7 +42,21 @@ interface ScheduledResponse {
     caption?: string
     created_at?: string
     published_at?: string
-    error?: string
+    publish_error?: string
+    metadata?: {
+      platforms?: string[]
+      brand?: string
+      video_path?: string
+      thumbnail_path?: string
+      post_ids?: Record<string, string>
+      publish_results?: Record<string, {
+        success: boolean
+        post_id?: string
+        account_id?: string
+        brand_used?: string
+        error?: string
+      }>
+    }
   }>
 }
 
@@ -64,13 +78,18 @@ export const schedulingApi = {
     const response = await get<ScheduledResponse>('/reels/scheduled')
     return response.schedules.map(s => ({
       id: s.schedule_id,
-      brand: s.brand as BrandName,
+      brand: (s.metadata?.brand || s.brand) as BrandName,
       job_id: s.reel_id,
       reel_id: s.reel_id,
       title: s.caption || 'Scheduled Post',
       scheduled_time: s.scheduled_time,
       caption: s.caption,
       status: s.status as ScheduledPost['status'],
+      error: s.publish_error,
+      published_at: s.published_at,
+      thumbnail_path: s.metadata?.thumbnail_path,
+      video_path: s.metadata?.video_path,
+      metadata: s.metadata,
     }))
   },
   

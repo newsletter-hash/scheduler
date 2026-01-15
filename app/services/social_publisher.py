@@ -36,14 +36,30 @@ class SocialPublisher:
         self.api_version = "v19.0"
         self._page_access_token_cache = {}  # Cache for page access tokens
         
+        # Store brand name for debugging
+        self.brand_name = brand_config.name if brand_config else "default"
+        
         # Debug output to show credential status
-        if self.ig_access_token and self.ig_business_account_id:
-            print(f"✅ Instagram credentials loaded (Account: {self.ig_business_account_id})")
-        else:
-            if not self.ig_access_token:
-                print("⚠️  Warning: Meta access token not found")
-            if not self.ig_business_account_id:
-                print("⚠️  Warning: INSTAGRAM_BUSINESS_ACCOUNT_ID not found")
+        print(f"🏷️ SocialPublisher initialized for: {self.brand_name}")
+        print(f"   📸 Instagram Account ID: {self.ig_business_account_id}")
+        print(f"   📘 Facebook Page ID: {self.fb_page_id}")
+        print(f"   🔑 Token present: {bool(self.ig_access_token)}")
+        
+        if not self.ig_access_token:
+            print("   ⚠️  Warning: Meta access token not found")
+        if not self.ig_business_account_id:
+            print("   ⚠️  Warning: Instagram Business Account ID not found")
+        if not self.fb_page_id:
+            print("   ⚠️  Warning: Facebook Page ID not found")
+    
+    def get_credential_info(self) -> Dict[str, Any]:
+        """Get info about credentials being used for debugging."""
+        return {
+            "brand": self.brand_name,
+            "instagram_account_id": self.ig_business_account_id,
+            "facebook_page_id": self.fb_page_id,
+            "has_token": bool(self.ig_access_token)
+        }
     
     def _get_page_access_token(self, page_id: str) -> Optional[str]:
         """
@@ -609,7 +625,9 @@ class SocialPublisher:
                 "success": True,
                 "platform": "facebook",
                 "post_id": video_id,
-                "video_id": video_id
+                "video_id": video_id,
+                "page_id": self.fb_page_id,
+                "brand_used": self.brand_name
             }
             
         except requests.exceptions.Timeout:

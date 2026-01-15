@@ -59,6 +59,20 @@ export interface ScheduledPost {
   video_path?: string
   caption?: string
   status: ScheduleStatus
+  error?: string
+  published_at?: string
+  metadata?: {
+    platforms?: string[]
+    brand?: string
+    post_ids?: Record<string, string>
+    publish_results?: Record<string, {
+      success: boolean
+      post_id?: string
+      account_id?: string
+      brand_used?: string
+      error?: string
+    }>
+  }
 }
 
 // Next slot info
