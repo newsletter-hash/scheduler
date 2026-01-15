@@ -3,8 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Beaker, Loader2, CheckCircle2, XCircle, Play, Calendar } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { Layout } from '@/shared/components/Layout'
-import { BrandBadge } from '@/shared/components/BrandBadge'
+import { BrandBadge } from '@/features/brands'
 import type { BrandName } from '@/shared/types'
 
 interface TestResult {
@@ -44,7 +43,7 @@ export function TestPage() {
       setActiveTest(null)
       toast.success(`✅ ${variables.brand} ${variables.variant} test completed!`)
     },
-    onError: (error: Error, variables) => {
+    onError: (error: Error) => {
       setActiveTest(null)
       toast.error(`❌ Test failed: ${error.message}`)
     }
@@ -60,18 +59,17 @@ export function TestPage() {
   const variants: ('light' | 'dark')[] = ['light', 'dark']
 
   return (
-    <Layout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Beaker className="w-8 h-8 text-purple-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Brand Connection Tests</h1>
-          </div>
-          <p className="text-gray-600">
-            Test each brand's configuration by generating a sample reel and scheduling it for immediate publication.
-          </p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <Beaker className="w-8 h-8 text-purple-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Brand Connection Tests</h1>
         </div>
+        <p className="text-gray-600">
+          Test each brand's configuration by generating a sample reel and scheduling it for immediate publication.
+        </p>
+      </div>
 
         {/* Test Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -196,6 +194,4 @@ export function TestPage() {
           </ul>
         </div>
       </div>
-    </Layout>
-  )
-}
+
