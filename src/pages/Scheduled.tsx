@@ -8,7 +8,9 @@ import {
   Grid,
   ExternalLink,
   Trash2,
-  Loader2
+  Loader2,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { clsx } from 'clsx'
@@ -27,7 +29,7 @@ import {
   subWeeks,
   parseISO
 } from 'date-fns'
-import { useScheduledPosts, useDeleteScheduled } from '@/features/scheduling'
+import { useScheduledPosts, useDeleteScheduled, useRetryFailed } from '@/features/scheduling'
 import { BrandBadge, getBrandColor, getBrandLabel, ALL_BRANDS } from '@/features/brands'
 import { FullPageLoader, Modal } from '@/shared/components'
 import type { ScheduledPost } from '@/shared/types'
@@ -36,6 +38,7 @@ export function ScheduledPage() {
   const navigate = useNavigate()
   const { data: posts = [], isLoading } = useScheduledPosts()
   const deleteScheduled = useDeleteScheduled()
+  const retryFailed = useRetryFailed()
   
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month')
@@ -100,6 +103,16 @@ export function ScheduledPage() {
       setSelectedPost(null)
     } catch {
       toast.error('Failed to unschedule')
+    }
+  }
+  
+  const handleRetry = async (post: ScheduledPost) => {
+    try {
+      await retryFailed.mutateAsync(post.id)
+      toast.success('Post queued for retry')
+      setSelectedPost(null)
+    } catch {
+      toast.error('Failed to retry')
     }
   }
   
@@ -374,6 +387,23 @@ export function ScheduledPage() {
               <span className="text-gray-500">
                 {format(parseISO(selectedPost.scheduled_time), 'MMMM d, yyyy h:mm a')}
               </span>
+              {selectedPost.status === 'failed' && (
+                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Failed
+                </span>
+              )}
+              {selectedPost.status === 'publishing' && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Publishing
+                </span>
+              )}
+              {selectedPost.status === 'published' && (
+                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                  Published
+                </span>
+              )}
             </div>
             
             <h3 className="text-lg font-semibold text-gray-900 whitespace-pre-line">
@@ -424,6 +454,22 @@ export function ScheduledPage() {
                 <ExternalLink className="w-4 h-4" />
                 View Job
               </button>
+              
+              {(selectedPost.status === 'failed' || selectedPost.status === 'publishing') && (
+                <button
+                  onClick={() => handleRetry(selectedPost)}
+                  disabled={retryFailed.isPending}
+                  className="btn btn-primary"
+                >
+                  {retryFailed.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  Retry
+                </button>
+              )}
+              
               <button
                 onClick={() => handleDelete(selectedPost)}
                 disabled={deleteScheduled.isPending}

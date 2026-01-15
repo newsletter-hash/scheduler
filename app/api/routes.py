@@ -928,6 +928,35 @@ async def delete_scheduled_post(schedule_id: str, user_id: Optional[str] = None)
         )
 
 
+@router.post("/scheduled/{schedule_id}/retry")
+async def retry_failed_post(schedule_id: str):
+    """
+    Retry a failed scheduled post by resetting its status to 'scheduled'.
+    
+    This allows the auto-publisher to pick it up again on the next check.
+    """
+    try:
+        success = scheduler_service.retry_failed(schedule_id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Scheduled post {schedule_id} not found or not in failed status"
+            )
+        
+        return {
+            "success": True,
+            "message": f"Post {schedule_id} reset to scheduled status for retry"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retry post: {str(e)}"
+        )
+
+
 class PublishRequest(BaseModel):
     reel_id: str
     caption: str = "CHANGE ME"

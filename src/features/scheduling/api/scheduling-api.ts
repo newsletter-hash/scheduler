@@ -77,6 +77,9 @@ export const schedulingApi = {
   deleteScheduled: (id: string) =>
     del<{ success: boolean }>(`/reels/scheduled/${id}`),
   
+  retryFailed: (id: string) =>
+    post<{ success: boolean }>(`/reels/scheduled/${id}/retry`),
+  
   getNextSlots: () =>
     get<Record<BrandName, NextSlot>>('/reels/next-slots'),
   

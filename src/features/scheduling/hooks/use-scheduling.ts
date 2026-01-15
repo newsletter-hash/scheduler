@@ -67,6 +67,17 @@ export function useDeleteScheduled() {
   })
 }
 
+export function useRetryFailed() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: schedulingApi.retryFailed,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.all })
+    },
+  })
+}
+
 export function useNextSlots() {
   return useQuery({
     queryKey: schedulingKeys.nextSlots(),

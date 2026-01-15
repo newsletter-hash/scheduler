@@ -311,6 +311,38 @@ class DatabaseSchedulerService:
             
             return count
     
+    def retry_failed(self, schedule_id: str) -> bool:
+        """
+        Reset a failed post to 'scheduled' status for retry.
+        
+        Args:
+            schedule_id: ID of the failed schedule
+            
+        Returns:
+            True if reset successfully, False if not found or not failed
+        """
+        with get_db_session() as db:
+            scheduled_reel = db.query(ScheduledReel).filter(
+                ScheduledReel.schedule_id == schedule_id
+            ).first()
+            
+            if not scheduled_reel:
+                return False
+            
+            if scheduled_reel.status not in ["failed", "publishing"]:
+                return False
+            
+            # Reset to scheduled
+            scheduled_reel.status = "scheduled"
+            scheduled_reel.publish_error = None
+            
+            # Update scheduled time to now so it gets picked up immediately
+            scheduled_reel.scheduled_time = datetime.now(timezone.utc)
+            
+            db.commit()
+            print(f"🔄 Reset post {schedule_id} for retry")
+            return True
+    
     def publish_now(
         self,
         video_path: Path,
