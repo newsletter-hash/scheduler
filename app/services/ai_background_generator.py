@@ -49,12 +49,15 @@ class AIBackgroundGenerator:
             }
             prompt = user_prompt + color_adaptations.get(brand_name, color_adaptations["gymcollege"])
         else:
-            # Default prompts
+            # Default prompts - FULL FRAME UTILIZATION, NO CENTERED SUBJECTS, NO DARK BACKGROUNDS
             prompts = {
-                "gymcollege": "A high-detail, cinematic health concept scene filling the entire frame with no empty space, featuring an oversized anatomical muscle fiber or human heart as the central focal subject, surrounded by molecular structures, protein chains, and energy particles in carefully arranged layers creating depth. Sharp, tactile microscopic cellular structures in the foreground with dark navy blue (#00435c) and deep midnight blue gradients, NO green tones whatsoever, glowing dark blue particles, and liquid effects in the background. Vivid saturated colors dominated by dark navy #00435c, deep midnight blue, and steel blue with contrasting warm yellow and orange accents for ATP energy and muscle activation. Studio-quality cinematic lighting with soft global illumination, subtle translucent glow on biological structures, and crisp highlights making everything pristine and idealized. Scientific, powerful mood visualizing hidden performance processes inside the athletic body, instantly readable at thumbnail size. Overall color palette strictly dark navy blue #00435c, deep midnight blues, and steel blues with moody dark atmospheric lighting, absolutely NO green.",
-                "healthycollege": "A high-detail, cinematic health concept scene filling the entire frame with no empty space, featuring an oversized cluster of vibrant superfoods, fresh produce, or anatomical digestive system as the central focal subject, surrounded by vitamin molecules, antioxidant particles, and nutrient symbols in carefully arranged layers creating depth. Sharp, tactile food textures and cellular structures in the foreground with dark green (#004f00) and deep forest green gradients, glowing dark green wellness particles, and liquid nutrient effects in the background. Vivid saturated colors dominated by dark green #004f00, deep forest greens, and emerald tones with contrasting warm yellow, red, and orange accents from fruits and vital energy. Studio-quality cinematic lighting with soft global illumination, subtle translucent glow on organic elements, and crisp highlights making everything pristine and premium. Scientific, natural mood visualizing hidden wellness processes inside the healthy body, instantly readable at thumbnail size. Overall color palette dominated by dark green #004f00, deep forest greens, and rich emerald hues with moody atmospheric lighting.",
-                "vitalitycollege": "A high-detail, cinematic vitality and wellness concept scene filling the entire frame with no empty space, featuring an oversized cellular rejuvenation structure, energy molecules, or flowing vitality streams as the central focal subject, surrounded by energy spirals, dynamic particles, and vitality elements in carefully arranged layers creating depth. Sharp, tactile organic structures in the foreground with vivid turquoise (#028f7a), bright teal, and cyan gradients, glowing turquoise particles, and flowing energy effects in the background. Vivid saturated colors dominated by vivid turquoise #028f7a, bright teal, and cyan with contrasting warm golden and coral accents for vitality energy and life force. Studio-quality cinematic lighting with soft global illumination, subtle translucent glow on organic structures, and crisp highlights making everything pristine and energetic. Dynamic, invigorating mood visualizing hidden vitality processes and cellular energy, instantly readable at thumbnail size. Overall color palette strictly vivid turquoise #028f7a, bright teals, cyan tones, and aqua hues with vibrant atmospheric lighting.",
-                "longevitycollege": "A high-detail, cinematic longevity and cellular energy concept scene filling the entire frame with no empty space, featuring an oversized mitochondria, DNA helix, or telomere structures as the central focal subject, surrounded by ATP molecules, cellular particles, and bright light bursts in carefully arranged layers creating depth. Sharp, tactile cellular structures in the foreground with light blue (#00c9ff), sky blue, and cyan gradients, glowing bright blue energy particles, and radiant light effects in the background. Vivid saturated colors dominated by light blue #00c9ff, sky blues, and bright cyan tones with contrasting subtle silver and white accents for cellular clarity and longevity. Studio-quality cinematic lighting with soft global illumination, subtle translucent glow on biological structures, and crisp highlights making everything pristine and enlightened. Scientific, calm mood visualizing hidden longevity processes and cellular optimization, instantly readable at thumbnail size. Overall color palette strictly light blue #00c9ff, sky blues, bright cyan tones, and luminous blue hues with clear atmospheric lighting."
+                "gymcollege": "An ultra-detailed, edge-to-edge composition completely filling the vertical 9:16 frame with NO empty space or dark backgrounds. The scene shows an extreme close-up macro view of anatomical muscle fibers, protein chains, and molecular structures arranged in diagonal, asymmetric layers from corner to corner. NO centered subject - elements flow dynamically across the entire frame creating natural depth and movement. Foreground features sharp, tactile cellular details with dark navy blue (#00435c) and deep midnight blue tones, middle ground shows glowing energy particles and ATP molecules, background has layered molecular structures creating depth. Rich, saturated color palette dominated by dark navy #00435c with vivid warm orange and yellow energy accents for contrast. Professional studio lighting with soft global illumination ensuring every corner is visible and detailed. Scientific, powerful mood showing the athletic body's hidden processes. Absolutely NO green tones, NO centered compositions, NO dark empty backgrounds - every pixel utilized with intentional visual information.",
+                
+                "healthycollege": "An ultra-detailed, edge-to-edge composition completely filling the vertical 9:16 frame with NO empty space or dark backgrounds. The scene shows an extreme close-up macro view of vibrant superfood textures, fresh produce cross-sections, and digestive cellular structures arranged in diagonal, asymmetric layers from corner to corner. NO centered subject - elements flow dynamically across the entire frame creating natural depth and movement. Foreground features sharp, tactile organic textures with dark green (#004f00) and deep forest green tones, middle ground shows glowing nutrient molecules and antioxidant particles, background has layered vitamin structures creating depth. Rich, saturated color palette dominated by dark green #004f00 with vivid warm red, orange, and yellow produce accents for contrast. Professional studio lighting with soft global illumination ensuring every corner is visible and detailed. Scientific, natural mood showing the body's wellness processes. NO centered compositions, NO dark empty backgrounds - every pixel utilized with intentional visual information.",
+                
+                "vitalitycollege": "An ultra-detailed, edge-to-edge composition completely filling the vertical 9:16 frame with NO empty space or dark backgrounds. The scene shows an extreme close-up macro view of cellular rejuvenation structures, energy spirals, and vitality streams arranged in diagonal, asymmetric layers from corner to corner. NO centered subject - elements flow dynamically across the entire frame creating natural depth and movement. Foreground features sharp, tactile organic structures with vivid turquoise (#028f7a), bright teal, and cyan tones, middle ground shows glowing energy particles and dynamic vitality elements, background has layered cellular patterns creating depth. Rich, saturated color palette dominated by vivid turquoise #028f7a with warm golden and coral energy accents for contrast. Professional studio lighting with soft global illumination ensuring every corner is visible and detailed. Dynamic, invigorating mood showing vitality and life force. Absolutely NO pink or rose tones, NO centered compositions, NO dark empty backgrounds - every pixel utilized with intentional visual information.",
+                
+                "longevitycollege": "An ultra-detailed, edge-to-edge composition completely filling the vertical 9:16 frame with NO empty space or dark backgrounds. The scene shows an extreme close-up macro view of mitochondria, DNA helixes, and telomere structures arranged in diagonal, asymmetric layers from corner to corner. NO centered subject - elements flow dynamically across the entire frame creating natural depth and movement. Foreground features sharp, tactile cellular details with light blue (#00c9ff), sky blue, and bright cyan tones, middle ground shows glowing ATP molecules and cellular energy particles, background has layered molecular structures creating depth. Rich, saturated color palette dominated by light blue #00c9ff with subtle silver and white accents for clarity. Professional studio lighting with soft global illumination ensuring every corner is visible and detailed. Scientific, calm mood showing longevity and cellular optimization. Absolutely NO warm tones, NO centered compositions, NO dark empty backgrounds - every pixel utilized with intentional visual information."
             }
             prompt = prompts.get(brand_name, prompts["gymcollege"])
         
@@ -62,9 +65,14 @@ class AIBackgroundGenerator:
         unique_id = str(uuid.uuid4())[:8]
         prompt = f"{prompt} [ID: {unique_id}]"
         
-        print(f"🎨 Generating AI background for brand: {brand_name}")
+        print(f"\n{'='*80}")
+        print(f"🎨 AI BACKGROUND GENERATION STARTED")
+        print(f"{'='*80}")
+        print(f"🏷️  Brand: {brand_name}")
         print(f"📝 Prompt length: {len(prompt)} chars")
         print(f"🆔 Unique ID: {unique_id}")
+        print(f"📄 Full prompt: {prompt[:200]}...")  # Show first 200 chars
+        print(f"{'='*80}\n")
         
         if progress_callback:
             progress_callback(f"Calling deAPI (FLUX.1-schnell) for {brand_name}...", 30)
@@ -77,6 +85,9 @@ class AIBackgroundGenerator:
             # Our target is 1080x1920, round to nearest valid dimensions
             width = ((REEL_WIDTH + 127) // 128) * 128  # Round up to nearest 128
             height = ((REEL_HEIGHT + 127) // 128) * 128  # Round up to nearest 128
+            
+            print(f"📐 Target dimensions: {REEL_WIDTH}x{REEL_HEIGHT}")
+            print(f"📐 Rounded dimensions: {width}x{height} (multiples of 128 required)")
             
             # Submit generation request
             headers = {
@@ -96,7 +107,12 @@ class AIBackgroundGenerator:
                 "loras": []
             }
             
-            print(f"📊 Request params: {width}x{height}, {payload['steps']} steps")
+            print(f"📊 API Request Parameters:")
+            print(f"   Model: {payload['model']}")
+            print(f"   Dimensions: {width}x{height}")
+            print(f"   Steps: {payload['steps']}")
+            print(f"   Seed: {payload['seed']}")
+            print(f"🌐 Sending POST request to {self.base_url}/txt2img...")
             
             response = requests.post(
                 f"{self.base_url}/txt2img",
@@ -104,15 +120,21 @@ class AIBackgroundGenerator:
                 json=payload,
                 timeout=120
             )
+            
+            print(f"📡 Response status code: {response.status_code}")
             response.raise_for_status()
             result = response.json()
             
             # Extract request_id from response (can be at root or nested in 'data')
             request_id = result.get("request_id") or result.get("data", {}).get("request_id")
             if not request_id:
+                print(f"❌ ERROR: No request_id in response!")
+                print(f"📄 Response: {result}")
                 raise RuntimeError(f"No request_id in response: {result}")
             
+            print(f"✅ Generation queued successfully!")
             print(f"📝 Request ID: {request_id}")
+            print(f"⏳ Polling for results...")
             
             if progress_callback:
                 progress_callback(f"Waiting for generation (ID: {request_id})...", 50)

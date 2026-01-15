@@ -45,28 +45,44 @@ class VideoGenerator:
         if not reel_image_path.exists():
             raise FileNotFoundError(f"Reel image not found: {reel_image_path}")
         
-        # Random duration if not specified - 7, 8, or 9 seconds with equal probability
+        # Random duration if not specified - 7 or 8 seconds with 50/50 probability
         if duration is None:
-            duration = random.choice([7, 8, 9])
+            duration = random.choice([7, 8])
+            print(f"🎲 Randomly selected video duration: {duration}s")
         
         # Random music if not specified
         if music_id is None:
             music_id = random.choice(["music_1", "music_2"])
+            print(f"🎵 Randomly selected music: {music_id}")
         
         # Get music file path
         music_path = self._get_music_path(music_id)
+        
+        print(f"\n{'='*80}")
+        print(f"🎬 VIDEO GENERATION STARTED")
+        print(f"{'='*80}")
+        print(f"📁 Output path: {output_path}")
+        print(f"🖼️  Image path: {reel_image_path}")
+        print(f"🎵 Music ID: {music_id}")
+        print(f"🎶 Music path: {music_path}")
+        print(f"⏱️  Duration: {duration}s")
         
         # Get random start time for music
         music_start = 0
         if music_path:
             music_duration = get_audio_duration(music_path)
+            print(f"🎼 Music duration: {music_duration}s")
             if music_duration and music_duration > duration:
                 # Pick random start time ensuring we have enough duration
                 max_start = music_duration - duration
                 music_start = random.uniform(0, max_start)
+                print(f"🔀 Random music start time: {music_start:.2f}s (max: {max_start:.2f}s)")
+        
+        print(f"{'='*80}\n")
         
         # Generate the video
         try:
+            print(f"🔧 Calling FFmpeg to create video...")
             success = create_video_from_image(
                 image_path=reel_image_path,
                 output_path=output_path,
@@ -74,6 +90,12 @@ class VideoGenerator:
                 music_path=music_path,
                 music_start_time=music_start
             )
+            
+            print(f"📊 FFmpeg result: {'success' if success else 'failed'}")
+            print(f"📂 Output exists: {output_path.exists()}")
+            if output_path.exists():
+                file_size = output_path.stat().st_size
+                print(f"📦 Output file size: {file_size:,} bytes ({file_size / 1024 / 1024:.2f} MB)")
             
             if not success or not output_path.exists():
                 raise RuntimeError("Video generation failed")
