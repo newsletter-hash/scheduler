@@ -8,7 +8,7 @@ export type BrandName = 'gymcollege' | 'healthycollege' | 'vitalitycollege' | 'l
 // Status types
 export type JobStatus = 'pending' | 'generating' | 'completed' | 'failed' | 'cancelled'
 export type BrandStatus = 'pending' | 'generating' | 'completed' | 'failed' | 'scheduled'
-export type ScheduleStatus = 'scheduled' | 'publishing' | 'published' | 'failed'
+export type ScheduleStatus = 'scheduled' | 'publishing' | 'published' | 'partial' | 'failed'
 
 // Variant type
 export type Variant = 'light' | 'dark'
