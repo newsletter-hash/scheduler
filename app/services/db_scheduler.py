@@ -253,7 +253,32 @@ class DatabaseSchedulerService:
             ).first()
             
             if scheduled_reel:
-                scheduled_reel.status = "published"
+                # Check if this is a partial success (some platforms failed)
+                has_failures = False
+                has_successes = False
+                
+                if publish_results:
+                    for platform, data in publish_results.items():
+                        if isinstance(data, dict):
+                            if data.get('success'):
+                                has_successes = True
+                            else:
+                                has_failures = True
+                
+                # Set status based on results
+                if has_failures and has_successes:
+                    scheduled_reel.status = "partial"
+                    # Extract failed platform errors
+                    failed_platforms = []
+                    for platform, data in publish_results.items():
+                        if isinstance(data, dict) and not data.get('success'):
+                            error = data.get('error', 'Unknown error')
+                            failed_platforms.append(f"{platform}: {error}")
+                    scheduled_reel.publish_error = "; ".join(failed_platforms)
+                else:
+                    scheduled_reel.status = "published"
+                    scheduled_reel.publish_error = None
+                
                 scheduled_reel.published_at = datetime.now(timezone.utc)
                 
                 # Store detailed publish results in metadata
@@ -323,13 +348,13 @@ class DatabaseSchedulerService:
     
     def retry_failed(self, schedule_id: str) -> bool:
         """
-        Reset a failed post to 'scheduled' status for retry.
+        Reset a failed or partial post to 'scheduled' status for retry.
         
         Args:
-            schedule_id: ID of the failed schedule
+            schedule_id: ID of the failed/partial schedule
             
         Returns:
-            True if reset successfully, False if not found or not failed
+            True if reset successfully, False if not found or not retriable
         """
         with get_db_session() as db:
             scheduled_reel = db.query(ScheduledReel).filter(
@@ -339,7 +364,7 @@ class DatabaseSchedulerService:
             if not scheduled_reel:
                 return False
             
-            if scheduled_reel.status not in ["failed", "publishing"]:
+            if scheduled_reel.status not in ["failed", "publishing", "partial"]:
                 return False
             
             # Reset to scheduled

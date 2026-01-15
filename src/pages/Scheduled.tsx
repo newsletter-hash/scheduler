@@ -10,7 +10,8 @@ import {
   Trash2,
   Loader2,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  AlertCircle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { clsx } from 'clsx'
@@ -404,6 +405,12 @@ export function ScheduledPage() {
                   Published
                 </span>
               )}
+              {selectedPost.status === 'partial' && (
+                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  Partial Failure
+                </span>
+              )}
             </div>
             
             <h3 className="text-lg font-semibold text-gray-900 whitespace-pre-line">
@@ -440,8 +447,8 @@ export function ScheduledPage() {
               </div>
             )}
             
-            {/* Publish Results - Show when published or failed */}
-            {(selectedPost.status === 'published' || selectedPost.status === 'failed') && selectedPost.metadata?.publish_results && (
+            {/* Publish Results - Show when published, partial, or failed */}
+            {(selectedPost.status === 'published' || selectedPost.status === 'partial' || selectedPost.status === 'failed') && selectedPost.metadata?.publish_results && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm font-medium text-gray-700 mb-3">Publish Details</p>
                 <div className="space-y-2">
@@ -505,7 +512,7 @@ export function ScheduledPage() {
                 View Job
               </button>
               
-              {(selectedPost.status === 'failed' || selectedPost.status === 'publishing') && (
+              {(selectedPost.status === 'failed' || selectedPost.status === 'partial' || selectedPost.status === 'publishing') && (
                 <button
                   onClick={() => handleRetry(selectedPost)}
                   disabled={retryFailed.isPending}

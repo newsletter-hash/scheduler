@@ -37,6 +37,16 @@ const statusConfig: Record<string, { bg: string; text: string; label: string }> 
     text: 'text-purple-700',
     label: 'Scheduled',
   },
+  partial: {
+    bg: 'bg-amber-100',
+    text: 'text-amber-700',
+    label: 'Partial',
+  },
+  published: {
+    bg: 'bg-green-100',
+    text: 'text-green-700',
+    label: 'Published',
+  },
 }
 
 export function StatusBadge({ status, size = 'sm' }: StatusBadgeProps) {
