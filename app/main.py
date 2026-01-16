@@ -190,19 +190,20 @@ async def startup_event():
                 print(f"\n📅 Found {len(pending)} post(s) ready to publish")
                 
                 for schedule in pending:
-                    schedule_id = schedule['schedule_id']
-                    reel_id = schedule['reel_id']
-                    caption = schedule.get('caption', 'CHANGE ME')
-                    metadata = schedule.get('metadata', {})
-                    
-                    # Check for retry_platforms (partial retry) or use original platforms
-                    retry_platforms = metadata.get('retry_platforms')
-                    succeeded_platforms = metadata.get('succeeded_platforms', [])
-                    
-                    if retry_platforms:
-                        platforms = retry_platforms
-                        print(f"   🔄 PARTIAL RETRY: Only retrying {platforms} (skipping already successful: {succeeded_platforms})")
-                    else:
+                    try:
+                        schedule_id = schedule['schedule_id']
+                        reel_id = schedule['reel_id']
+                        caption = schedule.get('caption', 'CHANGE ME')
+                        metadata = schedule.get('metadata', {})
+                        
+                        # Check for retry_platforms (partial retry) or use original platforms
+                        retry_platforms = metadata.get('retry_platforms')
+                        succeeded_platforms = metadata.get('succeeded_platforms', [])
+                        
+                        if retry_platforms:
+                            platforms = retry_platforms
+                            print(f"   🔄 PARTIAL RETRY: Only retrying {platforms} (skipping already successful: {succeeded_platforms})")
+                        
                         platforms = metadata.get('platforms', ['instagram'])
                         # Get paths from metadata or use defaults
                         metadata = schedule.get('metadata', {})
