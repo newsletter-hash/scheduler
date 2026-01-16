@@ -10,7 +10,6 @@ import os
 class BrandType(str, Enum):
     """Available brand types."""
     THE_GYM_COLLEGE = "THE_GYM_COLLEGE"
-    FITNESS_PRO = "FITNESS_PRO"
     HEALTHY_COLLEGE = "HEALTHY_COLLEGE"
     VITALITY_COLLEGE = "VITALITY_COLLEGE"
     LONGEVITY_COLLEGE = "LONGEVITY_COLLEGE"
@@ -52,22 +51,6 @@ BRAND_CONFIGS: Dict[BrandType, BrandConfig] = {
         instagram_business_account_id="17841468847801005",  # @thegymcollege
         facebook_page_id="421725951022067",  # Gym College Facebook Page
         meta_access_token=os.getenv("META_ACCESS_TOKEN"),  # Same token for both brands
-    ),
-    BrandType.FITNESS_PRO: BrandConfig(
-        name="FITNESS_PRO",
-        display_name="Fitness Pro",
-        primary_color=(10, 25, 47),  # Navy blue
-        secondary_color=(0, 230, 118),  # Bright green
-        text_color=(255, 255, 255),
-        highlight_color=(0, 230, 118, 100),
-        logo_filename="fitness_pro_logo.png",
-        thumbnail_bg_color=(10, 25, 47),
-        thumbnail_text_color=(255, 255, 255),
-        content_title_color=(255, 255, 255),
-        content_highlight_color=(0, 230, 118, 100),
-        instagram_business_account_id=os.getenv("FITNESSPRO_INSTAGRAM_ID"),
-        facebook_page_id=os.getenv("FITNESSPRO_FACEBOOK_PAGE_ID"),
-        meta_access_token=os.getenv("FITNESSPRO_META_TOKEN") or os.getenv("META_ACCESS_TOKEN"),
     ),
     BrandType.HEALTHY_COLLEGE: BrandConfig(
         name="HEALTHY_COLLEGE",
