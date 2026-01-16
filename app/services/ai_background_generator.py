@@ -40,49 +40,53 @@ class AIBackgroundGenerator:
         if progress_callback:
             progress_callback("Preparing AI prompt...", 10)
         
-        # Brand color palettes - ONLY the color changes, everything else stays identical
+        # Brand color palettes - BRIGHT, VIBRANT, SHINY colors
         color_palettes = {
             "gymcollege": {
-                "name": "Dark Blue",
-                "primary": "#00435c",
-                "description": "dark navy blue, midnight blue, deep steel blue, and ocean blue tones"
+                "name": "Vibrant Blue",
+                "primary": "#2196F3",
+                "accent": "#64B5F6",
+                "description": "bright sky blue, vibrant azure, luminous cyan, sparkling light blue, with soft white and golden sunlight accents"
             },
             "healthycollege": {
-                "name": "Dark Green", 
-                "primary": "#004f00",
-                "description": "dark forest green, deep emerald green, rich hunter green, and moss green tones"
+                "name": "Fresh Green", 
+                "primary": "#4CAF50",
+                "accent": "#81C784",
+                "description": "fresh lime green, vibrant leaf green, bright spring green, with soft yellow sunlight and white highlights"
             },
             "vitalitycollege": {
-                "name": "Vivid Turquoise",
-                "primary": "#028f7a", 
-                "description": "vivid turquoise, bright teal, vibrant cyan, and aquamarine tones"
+                "name": "Bright Turquoise",
+                "primary": "#26C6DA", 
+                "accent": "#4DD0E1",
+                "description": "bright turquoise, sparkling teal, vibrant aquamarine, with white shimmer and golden sunlight accents"
             },
             "longevitycollege": {
-                "name": "Vivid Azure",
-                "primary": "#00c9ff",
-                "description": "vivid azure, bright sky blue, luminous cyan, and electric blue tones"
+                "name": "Radiant Azure",
+                "primary": "#00BCD4",
+                "accent": "#80DEEA",
+                "description": "radiant azure, bright sky blue, luminous cyan, electric light blue, with white glow and warm sunlight touches"
             }
         }
         
         palette = color_palettes.get(brand_name, color_palettes["gymcollege"])
         
-        # BASE STYLE - IDENTICAL FOR ALL BRANDS (only color and content change)
-        base_style = """Highly stylized, hyper-detailed still-life composition. Dense, full-frame layout with absolutely NO empty or negative space. Objects must interlock, overlap, and fill the frame completely edge-to-edge. Semi-flat or slightly top-down perspective with controlled depth. Balanced but abundant composition - never sparse, never chaotic. NO centered subject, NO isolated focal object, NO plain or gradient backgrounds. Studio-crafted, digitally enhanced look - NOT candid, NOT natural photography. Polished surfaces, crisp edges, enhanced textures throughout. Ultra-sharp focus across the entire frame. Soft, even studio lighting with minimal harsh shadows. Subtle atmospheric depth with light bloom, fine particles, reflections, and surface detail. Every single pixel must contain intentional visual information."""
+        # BASE STYLE - BRIGHT, COLORFUL, VIBRANT, SHINY (like the NaturaMatrix example)
+        base_style = """BRIGHT, COLORFUL, VIBRANT still-life composition with SUNLIT atmosphere. Dense, full-frame layout filling every inch with objects. Light, airy, fresh feeling with SOFT GLOWING LIGHT throughout. Shallow water ripples, water droplets, moisture, and dewy surfaces. Soft bokeh light orbs floating in the background. Objects slightly submerged in shallow crystal-clear water with gentle ripples and reflections. Morning sunlight streaming in with lens flares and light rays. BRIGHT PASTEL background tones - NO DARK OR BLACK AREAS. Polished, glossy, shiny surfaces catching light. Ultra-sharp focus with dreamy soft glow around edges. Fresh, clean, healthy, optimistic, uplifting mood. Magazine-quality product photography style with enhanced saturation and vibrancy. Every surface should sparkle and shine. White highlights, soft shadows, luminous atmosphere."""
         
         # Build content-derived subject matter
         if content_context:
-            subject_matter = f"Visual elements directly derived from this content: '{content_context}'. All objects, forms, structures, and motifs must clearly relate to this theme."
+            subject_matter = f"Visual elements inspired by: '{content_context}'. Include relevant health/wellness objects: water bottles, fresh fruits, vegetables, fitness equipment, leaves, citrus slices, herbs, supplements, dumbbells, yoga mats, sneakers, salads, smoothies, clocks, measuring tape - whatever relates to the theme."
         else:
             # Fallback generic health/wellness subjects if no content provided
-            subject_matter = "Visual elements depicting health, wellness, fitness, and vitality concepts. Objects representing nutrition, exercise, cellular biology, and healthy lifestyle."
+            subject_matter = "Include an abundance of health and wellness objects: glass water bottles, fresh fruits, colorful vegetables, green leaves, citrus slices, sneakers, dumbbells, yoga accessories, clocks, fresh salads, smoothie glasses, measuring tape, supplements."
         
         # Build the final prompt
         if user_prompt:
             # User provided custom prompt - adapt with brand colors
-            prompt = f"{user_prompt} {base_style} COLOR PALETTE (MANDATORY): The entire image must be dominated by {palette['description']}. Primary color: {palette['primary']} ({palette['name']}). Use only subtle secondary accents. No cross-brand color leakage."
+            prompt = f"{user_prompt} {base_style} COLOR PALETTE: Dominated by {palette['description']}. Primary accent: {palette['primary']}. MANDATORY: Bright, light, colorful image with NO dark areas, NO black backgrounds, NO moody lighting."
         else:
             # Standard prompt with content-derived subjects and brand colors
-            prompt = f"{subject_matter} {base_style} COLOR PALETTE (MANDATORY): The entire image must be dominated by {palette['description']}. Primary color: {palette['primary']} ({palette['name']}). Use only subtle secondary accents for contrast. No other color families allowed."
+            prompt = f"{subject_matter} {base_style} COLOR PALETTE: Primary tones of {palette['description']}. Main accent color: {palette['primary']}. MANDATORY: Image must be BRIGHT, LIGHT, and COLORFUL. Absolutely NO dark backgrounds, NO black, NO shadowy or moody atmosphere."
         
         # Add unique identifier to ensure different images each time
         unique_id = str(uuid.uuid4())[:8]
