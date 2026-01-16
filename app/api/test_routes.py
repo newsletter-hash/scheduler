@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from app.services.content_generator import ContentGenerator
 from app.services.db_scheduler import DatabaseSchedulerService
 
-router = APIRouter(prefix="/test", tags=["test"])
+router = APIRouter(prefix="/api/test", tags=["test"])
 
 
 class TestBrandRequest(BaseModel):
