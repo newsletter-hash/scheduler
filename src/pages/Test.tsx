@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Beaker, Loader2, CheckCircle2, XCircle, Play, Calendar } from 'lucide-react'
+import { Beaker, Loader2, CheckCircle2, XCircle, Play, Calendar, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { BrandBadge } from '@/features/brands'
+import { Modal } from '@/shared/components'
 import type { BrandName } from '@/shared/types'
 
 interface TestResult {
@@ -12,15 +13,18 @@ interface TestResult {
   brand: string
   variant: string
   message: string
+  title: string
+  content_lines: string[]
+  caption: string
   video_path?: string
   thumbnail_path?: string
-  schedule_id?: string
 }
 
 export function TestPage() {
   const navigate = useNavigate()
   const [activeTest, setActiveTest] = useState<string | null>(null)
   const [testResults, setTestResults] = useState<Record<string, TestResult>>({})
+  const [scheduleModal, setScheduleModal] = useState<{ open: boolean; result: TestResult | null }>({ open: false, result: null })
 
   const testBrand = useMutation({
     mutationFn: async ({ brand, variant }: { brand: BrandName; variant: 'light' | 'dark' }) => {
@@ -46,6 +50,75 @@ export function TestPage() {
     onError: (error: Error) => {
       setActiveTest(null)
       toast.error(`❌ Test failed: ${error.message}`)
+    }
+  })
+
+  const deleteReel = useMutation({
+    mutationFn: async (reelId: string) => {
+      const response = await fetch(`/api/test/reel/${reelId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Delete failed')
+      }
+      
+      return response.json()
+    },
+    onSuccess: (_, reelId) => {
+      // Remove from results
+      setTestResults(prev => {
+        const newResults = { ...prev }
+        for (const key in newResults) {
+          if (newResults[key].job_id === reelId) {
+            delete newResults[key]
+          }
+        }
+        return newResults
+      })
+      toast.success('🗑️ Test reel deleted')
+    },
+    onError: (error: Error) => {
+      toast.error(`❌ Delete failed: ${error.message}`)
+    }
+  })
+
+  const scheduleReel = useMutation({
+    mutationFn: async (result: TestResult) => {
+      const scheduleTime = new Date(Date.now() + 60000) // 1 minute from now
+      
+      const response = await fetch('/api/jobs/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 'test@system',
+          reel_id: result.job_id,
+          scheduled_time: scheduleTime.toISOString(),
+          caption: result.caption,
+          platforms: ['instagram', 'facebook'],
+          video_path: result.video_path,
+          thumbnail_path: result.thumbnail_path,
+          user_name: 'Test User',
+          brand: result.brand,
+          variant: result.variant
+        })
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Scheduling failed')
+      }
+      
+      return response.json()
+    },
+    onSuccess: () => {
+      setScheduleModal({ open: false, result: null })
+      toast.success('✅ Test reel scheduled!')
+      navigate('/scheduled')
+    },
+    onError: (error: Error) => {
+      toast.error(`❌ Scheduling failed: ${error.message}`)
     }
   })
 
@@ -145,15 +218,25 @@ export function TestPage() {
                               <Play className="w-4 h-4" />
                             </button>
                           )}
-                          {result.schedule_id && (
-                            <button
-                              onClick={() => navigate('/scheduled')}
-                              className="p-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors"
-                              title="View in scheduled"
-                            >
-                              <Calendar className="w-4 h-4" />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => setScheduleModal({ open: true, result })}
+                            className="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors"
+                            title="Review and schedule"
+                          >
+                            <Calendar className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm('Delete this test reel?')) {
+                                deleteReel.mutate(result.job_id)
+                              }
+                            }}
+                            disabled={deleteReel.isPending}
+                            className="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors disabled:opacity-50"
+                            title="Delete test reel"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       )}
                     </div>
@@ -170,7 +253,7 @@ export function TestPage() {
                       if (result?.success) {
                         return (
                           <span key={variant} className="block text-green-600 mb-1">
-                            ✓ {variant}: Scheduled as {result.schedule_id?.slice(0, 8)}
+                            ✓ {variant}: Generated {result.job_id.slice(0, 12)}
                           </span>
                         )
                       }
@@ -187,13 +270,95 @@ export function TestPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
           <h3 className="font-semibold text-blue-900 mb-2">How it works</h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Each test generates a real reel with test content for the selected brand and variant</li>
-            <li>• The reel is automatically scheduled for publication in 1 minute</li>
-            <li>• You can preview the video and view it in the Scheduled page</li>
+            <li>• Each test generates a real reel with AI viral content (same as Auto-Generate)</li>
+            <li>• Review the generated content, caption, and video before scheduling</li>
+            <li>• Click the calendar icon to open the scheduling modal and confirm publication</li>
             <li>• Use this to verify brand credentials and generation quality before production use</li>
+            <li>• Delete test reels you don't want to keep</li>
           </ul>
         </div>
-      </div>
+
+      {/* Schedule Confirmation Modal */}
+      {scheduleModal.open && scheduleModal.result && (
+        <Modal
+          isOpen={scheduleModal.open}
+          onClose={() => setScheduleModal({ open: false, result: null })}
+          title="Schedule Test Reel"
+        >
+          <div className="space-y-4">
+            <div>
+              <BrandBadge brand={scheduleModal.result.brand as BrandName} />
+              <span className="ml-2 text-sm text-gray-600">
+                {scheduleModal.result.variant === 'light' ? '☀️ Light' : '🌙 Dark'} Mode
+              </span>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-1">Title</h4>
+              <p className="text-gray-700">{scheduleModal.result.title}</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-1">Content</h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {scheduleModal.result.content_lines.map((line, idx) => (
+                  <li key={idx}>• {line}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-1">Caption</h4>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap max-h-40 overflow-y-auto border border-gray-200 rounded p-2">
+                {scheduleModal.result.caption}
+              </p>
+            </div>
+
+            {scheduleModal.result.video_path && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Video Preview</h4>
+                <video
+                  src={scheduleModal.result.video_path}
+                  controls
+                  className="w-full max-h-96 rounded-lg bg-black"
+                />
+              </div>
+            )}
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-sm text-yellow-800">
+                ⚠️ This will schedule the reel for publication in 1 minute on both Instagram and Facebook.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setScheduleModal({ open: false, result: null })}
+                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => scheduleReel.mutate(scheduleModal.result!)}
+                disabled={scheduleReel.isPending}
+                className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {scheduleReel.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-4 h-4" />
+                    Confirm & Schedule
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
   )
 }
-

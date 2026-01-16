@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from app.services.image_generator import ImageGenerator
 from app.services.video_generator import VideoGenerator
 from app.services.caption_builder import CaptionBuilder
+from app.services.content_generator import ContentGenerator
 from app.services.db_scheduler import DatabaseSchedulerService
 from app.core.config import BrandType
 
@@ -27,20 +28,22 @@ class TestBrandResponse(BaseModel):
     brand: str
     variant: str
     message: str
+    title: str
+    content_lines: list[str]
+    caption: str
     video_path: Optional[str] = None
     thumbnail_path: Optional[str] = None
-    schedule_id: Optional[str] = None
 
 
 @router.post("/brand", response_model=TestBrandResponse)
 async def test_brand_connection(request: TestBrandRequest):
     """
-    Test a brand connection by generating a single reel.
+    Test a brand connection by generating a single reel with AI content.
     
     This endpoint:
-    1. Generates a test reel for the specified brand and variant
-    2. Schedules it for immediate publication (now + 1 minute)
-    3. Returns the job details and schedule info
+    1. Generates viral content using AI (same as Auto-Generate)
+    2. Creates thumbnail, reel image, and video
+    3. Returns all details for user review - NO AUTOMATIC SCHEDULING
     """
     print(f"\n{'='*100}")
     print(f"🧪 TEST BRAND CONNECTION ENDPOINT CALLED")
@@ -76,15 +79,22 @@ async def test_brand_connection(request: TestBrandRequest):
         reel_id = f"TEST-{uuid.uuid4().hex[:8]}_{request.brand}"
         print(f"🆔 Generated reel ID: {reel_id}")
         
-        # Test content
-        title = "🧪 Connection Test"
-        lines = [
+        # Step 0: Generate viral content using AI (same as Auto-Generate)
+        print(f"\n🤖 Step 0: Generating AI viral content...")
+        content_gen = ContentGenerator()
+        viral_content = content_gen.generate_viral_content(topic_hint=None)
+        
+        if not viral_content.get('success'):
+            print(f"   ❌ AI generation failed, using fallback")
+        
+        title = viral_content.get('title', '🧪 Connection Test')
+        lines = viral_content.get('content_lines', [
             "This is an automated test",
             "Verifying brand configuration",
             "All systems operational"
-        ]
+        ])
         
-        print(f"📝 Test content prepared:")
+        print(f"📝 AI Content generated:")
         print(f"   Title: {title}")
         print(f"   Lines: {lines}")
         
@@ -156,32 +166,13 @@ async def test_brand_connection(request: TestBrandRequest):
             print(f"   ❌ Caption generation failed: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Caption generation failed: {str(e)}")
         
-        # Schedule for immediate publication (1 minute from now)
-        scheduled_time = datetime.now(timezone.utc) + timedelta(minutes=1)
-        
-        print(f"\n📅 Step 5: Scheduling test reel for immediate publication...")
-        print(f"   Scheduled time: {scheduled_time.isoformat()}")
-        
-        scheduler = DatabaseSchedulerService()
-        schedule_result = scheduler.schedule_reel(
-            user_id="test@system",
-            reel_id=reel_id,
-            scheduled_time=scheduled_time,
-            caption=caption,
-            platforms=["instagram", "facebook"],
-            video_path=str(video_path),
-            thumbnail_path=str(thumbnail_path),
-            user_name="Test User",
-            brand=request.brand,
-            variant=request.variant
-        )
-        
-        print(f"   ✅ Scheduled successfully!")
-        print(f"   📋 Schedule ID: {schedule_result.get('schedule_id')}")
-        print(f"   ⏰ Will publish at: {schedule_result.get('scheduled_time')}")
-        
         print(f"\n{'='*100}")
-        print(f"🎉 TEST COMPLETED SUCCESSFULLY")
+        print(f"🎉 TEST GENERATION COMPLETED SUCCESSFULLY")
+        print(f"   Reel ID: {reel_id}")
+        print(f"   Video: /output/videos/{reel_id}.mp4")
+        print(f"   Thumbnail: /output/thumbnails/{reel_id}.png")
+        print(f"   Caption: {caption[:100]}...")
+        print(f"   ⚠️  NOT SCHEDULED - User must review and confirm")
         print(f"{'='*100}\n")
         
         return TestBrandResponse(
@@ -189,10 +180,12 @@ async def test_brand_connection(request: TestBrandRequest):
             job_id=reel_id,
             brand=request.brand,
             variant=request.variant,
-            message=f"Test reel generated and scheduled for {scheduled_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            message="Test reel generated successfully. Review and schedule manually.",
+            title=title,
+            content_lines=lines,
+            caption=caption,
             video_path=f"/output/videos/{reel_id}.mp4",
-            thumbnail_path=f"/output/thumbnails/{reel_id}.png",
-            schedule_id=schedule_result.get('schedule_id')
+            thumbnail_path=f"/output/thumbnails/{reel_id}.png"
         )
         
     except Exception as e:
@@ -205,4 +198,39 @@ async def test_brand_connection(request: TestBrandRequest):
         print(f"📜 Traceback:\n{traceback.format_exc()}")
         print(f"{'='*100}\n")
         
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/reel/{reel_id}")
+async def delete_test_reel(reel_id: str):
+    """
+    Delete a test reel (video, thumbnail, reel image files).
+    """
+    print(f"\n🗑️  DELETE TEST REEL: {reel_id}")
+    
+    try:
+        base_dir = Path(__file__).resolve().parent.parent.parent
+        
+        files_to_delete = [
+            base_dir / "output" / "videos" / f"{reel_id}.mp4",
+            base_dir / "output" / "thumbnails" / f"{reel_id}.png",
+            base_dir / "output" / "reels" / f"{reel_id}.png"
+        ]
+        
+        deleted = []
+        for file_path in files_to_delete:
+            if file_path.exists():
+                file_path.unlink()
+                deleted.append(str(file_path.name))
+                print(f"   ✅ Deleted: {file_path.name}")
+        
+        if not deleted:
+            print(f"   ⚠️  No files found for reel: {reel_id}")
+            raise HTTPException(status_code=404, detail=f"No files found for reel: {reel_id}")
+        
+        print(f"   🎉 Successfully deleted {len(deleted)} file(s)\n")
+        return {"success": True, "deleted_files": deleted, "message": f"Deleted {len(deleted)} file(s)"}
+        
+    except Exception as e:
+        print(f"   ❌ Delete failed: {str(e)}\n")
         raise HTTPException(status_code=500, detail=str(e))
