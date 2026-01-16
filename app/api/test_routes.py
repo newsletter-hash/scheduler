@@ -11,6 +11,7 @@ from app.services.image_generator import ImageGenerator
 from app.services.video_generator import VideoGenerator
 from app.services.caption_builder import CaptionBuilder
 from app.services.db_scheduler import DatabaseSchedulerService
+from app.core.config import BrandType
 
 router = APIRouter(prefix="/api/test", tags=["test"])
 
@@ -55,6 +56,16 @@ async def test_brand_connection(request: TestBrandRequest):
         print(f"❌ Invalid brand: {request.brand}")
         raise HTTPException(status_code=400, detail=f"Invalid brand. Must be one of: {valid_brands}")
     
+    # Map brand string to BrandType enum
+    brand_mapping = {
+        "gymcollege": BrandType.THE_GYM_COLLEGE,
+        "healthycollege": BrandType.HEALTHY_COLLEGE,
+        "vitalitycollege": BrandType.VITALITY_COLLEGE,
+        "longevitycollege": BrandType.LONGEVITY_COLLEGE,
+    }
+    brand_type = brand_mapping[request.brand]
+    print(f"🔄 Mapped '{request.brand}' to BrandType: {brand_type}")
+    
     # Validate variant
     if request.variant not in ['light', 'dark']:
         print(f"❌ Invalid variant: {request.variant}")
@@ -90,7 +101,7 @@ async def test_brand_connection(request: TestBrandRequest):
         
         # Initialize services
         print(f"\n🔧 Initializing generators...")
-        image_generator = ImageGenerator(request.brand, variant=request.variant)
+        image_generator = ImageGenerator(brand_type, variant=request.variant, brand_name=request.brand)
         video_generator = VideoGenerator()
         caption_builder = CaptionBuilder()
         
